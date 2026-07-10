@@ -289,8 +289,47 @@ namespace LakerProxy.ProxyPlayground.ViewModels
 
 
 
+    private AcmeLogsViewModel _acmeLogs;
+    public AcmeLogsViewModel AcmeLogs
+    {
+      get { return _acmeLogs; }
+      private set
+      {
+        if (Equals(value, _acmeLogs)) return;
+        _acmeLogs = value;
+        NotifyOfPropertyChange();
+      }
+    }
+
+    private bool _showAcmeLog;
+    public bool ShowAcmeLog
+    {
+      get { return _showAcmeLog; }
+      set
+      {
+        if (Equals(value, _showAcmeLog)) return;
+        _showAcmeLog = value;
+        NotifyOfPropertyChange();
+
+        if (value)
+        {
+          AcmeLogs ??= new AcmeLogsViewModel(Settings);
+          _ = ((IActivate)AcmeLogs).ActivateAsync(CancellationToken.None);
+        }
+        else if (AcmeLogs != null)
+        {
+          // close stops the stream; toggling back on reconnects
+          _ = ((IDeactivate)AcmeLogs).DeactivateAsync(true, CancellationToken.None);
+        }
+      }
+    }
+
+
+
     protected override async Task OnDeactivateAsync(bool close, CancellationToken cancellationToken)
     {
+      if (close && AcmeLogs != null)
+        await ((IDeactivate)AcmeLogs).DeactivateAsync(true, cancellationToken);
       await base.OnDeactivateAsync(close, cancellationToken);
     }
   }

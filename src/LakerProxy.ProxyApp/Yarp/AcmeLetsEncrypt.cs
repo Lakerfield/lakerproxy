@@ -73,7 +73,7 @@ namespace LakerProxy.ProxyApp.Yarp
         Challenge? tlsAlpn01Challenge = null;
         foreach (var challenge in authz.Challenges)
         {
-          await writeLog((hostname, "2-a", $"Challenge type: {challenge.Type}, status: {challenge.Status}"));
+          await writeLog((hostname, "3", $"Challenge type: {challenge.Type}, status: {challenge.Status}"));
 
           // Select the HTTP-01 challenge
           if (challenge.Type == "http-01")
@@ -94,10 +94,10 @@ namespace LakerProxy.ProxyApp.Yarp
           var keyAuthValue = acmeClient.GetHttpChallengeValue(token);
           var challengeUrl = $"http://{authz.Identifier}/.well-known/acme-challenge/{token}";
 
-          await writeLog((hostname, "3", $"HTTP-01 Challenge: {challengeUrl}"));
+          await writeLog((hostname, "4", $"HTTP-01 Challenge: {challengeUrl}"));
           if (http01Challenge.Status == "valid")
-          {//????
-            Console.WriteLine($"  Challenge already valid, skipping validation.");
+          {
+            await writeLog((hostname, "4", $"HTTP-01 Challenge already valid, skipping validation."));
             continue;
           }
 
@@ -109,12 +109,12 @@ namespace LakerProxy.ProxyApp.Yarp
           _context.AcmeValidation = acmeValidation;
           try
           {
-            Console.WriteLine($"  Validating challenge...");
+            await writeLog((hostname, "4", $"Validating challenge..."));
             await acmeClient.ValidateChallengeAsync(http01Challenge.Url!);
-            Console.WriteLine($"  Waiting for challenge validation...");
+            await writeLog((hostname, "4", $"Waiting for challenge validation..."));
 
             var validatedChallenge = await acmeClient.WaitForChallengeValidAsync(http01Challenge.Url!);
-            Console.WriteLine($"  Challenge status: {validatedChallenge.Status}");
+            await writeLog((hostname, "4", $"Challenge status: {validatedChallenge.Status}"));
           }
           finally
           {
@@ -136,9 +136,10 @@ namespace LakerProxy.ProxyApp.Yarp
           var forwardLabel = LakerfieldAcmeClient.GetDnsValidationForwardLabel(authz.Identifier);
           var forwardedTxtRecord = $"{forwardLabel}.{Program.Server.AcmeChallengeZone}";
 
+          await writeLog((hostname, "4", $"DNS-01 Challenge: {dnsValue} @ {forwardedTxtRecord}"));
           if (dns01Challenge.Status == "valid")
-          {//?????
-            Console.WriteLine($"  Challenge already valid, skipping validation.");
+          {
+            await writeLog((hostname, "4", $"DNS-01 Challenge already valid, skipping validation."));
             continue;
           }
 
@@ -150,11 +151,11 @@ namespace LakerProxy.ProxyApp.Yarp
             validFor: TimeSpan.FromMinutes(10));
           try
           {
-            Console.WriteLine($"  Validating challenge...");
+            await writeLog((hostname, "4", $"Validating challenge..."));
             await acmeClient.ValidateChallengeAsync(dns01Challenge.Url!);
-            Console.WriteLine($"  Waiting for challenge validation...");
+            await writeLog((hostname, "4", $"Waiting for challenge validation..."));
             var validatedChallenge = await acmeClient.WaitForChallengeValidAsync(dns01Challenge.Url!);
-            Console.WriteLine($"  Challenge status: {validatedChallenge.Status}");
+            await writeLog((hostname, "4", $"Challenge status: {validatedChallenge.Status}"));
           }
           finally
           {
@@ -166,26 +167,28 @@ namespace LakerProxy.ProxyApp.Yarp
         // TLS-ALPN-01 example
         if (tlsAlpn01Challenge != null)
         {
+          await writeLog((hostname, "4", $"TLS-ALPN-01 Challenge: not implemented"));
           // TODO: implement when needed
         }
       }
 
 
-      Console.WriteLine("  Waiting for order to become 'ready'...");
+      await writeLog((hostname, "5", $"Waiting for order to become 'ready'..."));
       var readyOrder = await acmeClient.WaitForOrderReadyAsync(acmeOrder.Url!);
-      Console.WriteLine($"  Order status: {readyOrder.Status}");
+      await writeLog((hostname, "5", $"Order status: {readyOrder.Status}"));
 
-      Console.WriteLine("  Finalizing order (submitting CSR)...");
+      await writeLog((hostname, "6", $"Finalizing order (submitting CSR)..."));
       var (pendingOrder, certPrivateKey) = await acmeClient.FinalizeOrderAsync(readyOrder, hostnames);
-      Console.WriteLine($"  Order status after finalize: {pendingOrder.Status}");
+      await writeLog((hostname, "6", $"Order status after finalize: {pendingOrder.Status}"));
 
-      Console.WriteLine("  Waiting for order to become 'valid'...");
+      await writeLog((hostname, "6", $"Waiting for order to become 'valid'..."));
       var validOrder = await acmeClient.WaitForOrderValidAsync(pendingOrder.Url!);
-      Console.WriteLine($"  Order status: {validOrder.Status}");
+      await writeLog((hostname, "6", $"Order status: {validOrder.Status}"));
 
-      Console.WriteLine("  Downloading certificate...");
+      await writeLog((hostname, "7", $"Downloading certificate..."));
       var preferredRootCertificate = account.PreferredRootCertificate.IsNullOrWhiteSpaceThen(null);
       var pemChain = await acmeClient.DownloadCertificateAsync(validOrder);// TODO: preferredRootCertificate
+      await writeLog((hostname, "7", $"Certificate is issued..."));
 
       var pemKey = certPrivateKey.ToPem();
 
@@ -218,6 +221,7 @@ namespace LakerProxy.ProxyApp.Yarp
 
       var pfx = pfxCerts.Export(X509ContentType.Pkcs12, _pfxPassword);
 
+      await writeLog((hostname, "8", $"Saving certificate with serial number: {certWithKey.SerialNumber}"));
       await _provider.Save(_context, pfx, certWithKey, pemChain, pemKey);
     }
 

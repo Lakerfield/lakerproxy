@@ -63,14 +63,13 @@ namespace LakerProxy.ProxyApp.BackgroundServices
           w.Scope is CertificateScope.SingleDomain or CertificateScope.Wildcard or CertificateScope.WildcardWithApex &&
           w.PrimaryServer == Program.Server.Id &&
           !string.Equals(w.Hostname, "localhost", StringComparison.OrdinalIgnoreCase)).ToArray();
+        await WriteLog("", "", $"certificate check started for {websites.Length} of {allWebsites.Count}");
         allWebsites.Clear();
-
-        await WriteLog("", "0", $"certificate check started for {websites.Length} of {allWebsites.Count}");
 
         foreach (var website in websites)
         {
-          if (website.Id != "JmU15yYDJEOojPoptRAUzQ")
-            continue;
+          //if (website.Id != "JmU15yYDJEOojPoptRAUzQ")
+          //  continue;
 
           var activeCertificate = website.GetActiveCertificate();
           if (!MustBeUpdated(website, activeCertificate, isFirstRun))
@@ -92,7 +91,7 @@ namespace LakerProxy.ProxyApp.BackgroundServices
             await letsEncrypt.Execute(x => WriteLog(x.domain, x.step, x.message));
 
             _logger.LogWarning($"{nameof(LetsEncryptBackgroundService)} {website.Hostname} certificate is renewed.");
-            await WriteLog(website.Hostname, "9", "certificate is issued");
+            await WriteLog(website.Hostname, "9", "certificate request is completed");
           }
           catch (Exception e)
           {
@@ -101,7 +100,7 @@ namespace LakerProxy.ProxyApp.BackgroundServices
           }
         }
 
-        await WriteLog("", "0", "certificate check completed");
+        await WriteLog("", "", "certificate check completed");
 
         isFirstRun = false;
         if (_letsEncryptTrigger.Token.IsCancellationRequested)

@@ -1,12 +1,14 @@
 <UserControl x:Class="LakerProxy.ProxyPlayground.Views.WebsitesView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:cal="http://www.caliburnproject.org"
              xmlns:controls="clr-namespace:LakerProxy.ProxyPlayground.Controls"
              MinHeight="200" MinWidth="300">
   <Grid>
     <Grid.RowDefinitions>
       <RowDefinition Height="Auto"/>
       <RowDefinition Height="*"/>
+      <RowDefinition Height="Auto"/>
     </Grid.RowDefinitions>
 
     <StackPanel Orientation="Horizontal">
@@ -34,6 +36,10 @@
       <Button x:Name="DownloadCertificate" ToolTip="DownloadCertificate" Margin="8,0,0,0">
         <Image Source="/Images/cloud_computing_download.png" Height="32" />
       </Button>
+
+      <ToggleButton IsChecked="{Binding ShowAcmeLog}" ToolTip="Show live acme log" Margin="8,0,0,0">
+        <Image Source="/Images/document.png" Height="32" />
+      </ToggleButton>
 
     </StackPanel>
 
@@ -99,6 +105,12 @@
 
 
     </DataGrid>
+
+    <ContentControl Grid.Row="2"
+                    Height="220"
+                    Margin="0,4,0,0"
+                    cal:View.Model="{Binding AcmeLogs}"
+                    Visibility="{Binding ShowAcmeLog, Converter={StaticResource BooleanToVisibilityConverter}}" />
 
   </Grid>
 </UserControl>
