@@ -28,9 +28,6 @@
         <TextBlock Margin="0,8,0,0">Certificate</TextBlock>
         <ComboBox SelectedValue="{Binding Entity.Scope, Converter={StaticResource EnumListCertificateScope}}" ItemsSource="{StaticResource EnumListCertificateScope}"/>
 
-        <TextBlock Margin="0,8,0,0">Certificate</TextBlock>
-        <ComboBox SelectedValue="{Binding Entity.Certificate, Converter={StaticResource EnumListCertificateKind}}" ItemsSource="{StaticResource EnumListCertificateKind}"/>
-
         <CheckBox IsChecked="{Binding Entity.ForceRenew}">Force renew certificate</CheckBox>
 
         <TextBlock Text="Destination" Margin="0,8,0,0" />

@@ -21,33 +21,34 @@ namespace LakerProxy.ProxyApp
     // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
     public void ConfigureServices(IServiceCollection services)
     {
-      var routes = new[]
-      {
-        new RouteConfig()
-        {
-          RouteId = "route1",
-          ClusterId = "cluster1",
-          Match = new RouteMatch
-          {
-            Hosts = new []{ "api.lakerfield.net"},
-            Path = "{**catch-all}"
-          }
-        }
-      };
-      var clusters = new[]
-      {
-        new ClusterConfig()
-        {
-          ClusterId = "cluster1",
-          Destinations = new Dictionary<string, DestinationConfig>(StringComparer.OrdinalIgnoreCase)
-          {
-            { "destination1", new DestinationConfig() { Address = "https://lakerfield.net" } }
-          }
-        }
-      };
+      //var routes = new[]
+      //{
+      //  new RouteConfig()
+      //  {
+      //    RouteId = "route1",
+      //    ClusterId = "cluster1",
+      //    Match = new RouteMatch
+      //    {
+      //      Hosts = new []{ "api.lakerfield.net"},
+      //      Path = "{**catch-all}"
+      //    }
+      //  }
+      //};
+      //var clusters = new[]
+      //{
+      //  new ClusterConfig()
+      //  {
+      //    ClusterId = "cluster1",
+      //    Destinations = new Dictionary<string, DestinationConfig>(StringComparer.OrdinalIgnoreCase)
+      //    {
+      //      { "destination1", new DestinationConfig() { Address = "https://lakerfield.net" } }
+      //    }
+      //  }
+      //};
 
       services.AddReverseProxy()
-        .LoadFromMemory(routes, clusters);
+        //.LoadFromMemory(routes, clusters);
+        .LoadFromMemory(Array.Empty<RouteConfig>(), Array.Empty<ClusterConfig>());
 
 
       services.AddRouting(options =>
