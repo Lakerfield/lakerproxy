@@ -219,12 +219,12 @@ namespace LakerProxy.ProxyApp
 
         (WebsiteKind.NotFound, async (context) => {
             context.Response.StatusCode = 404;
-            await context.Response.WriteAsync("Hello, there is nothing here!");
+            await context.Response.WriteAsync("404 - The requested page or endpoint could not be found.");
           }),
 
         (WebsiteKind.Offline, async (context) => {
             context.Response.StatusCode = 404;
-            await context.Response.WriteAsync("Hello, there is nothing here!");
+            await context.Response.WriteAsync("404 - The requested page or endpoint could not be found.");
           }),
 
         (WebsiteKind.Info, async (context) => {
