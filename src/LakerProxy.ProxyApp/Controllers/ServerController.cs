@@ -93,6 +93,8 @@ namespace LakerProxy.ProxyApp.Controllers
 
         await Services.Server().Save(server, dbContext);
 
+        await WriteAuditLog(user, $"Server {server.Name} ({server.Id}) created");
+
         return CreatedAtRoute(RouteNames.ServerGetById, new { id = server.Id }, await server.ToWeb(Services));
       }
       catch (Exception e)
@@ -124,6 +126,8 @@ namespace LakerProxy.ProxyApp.Controllers
         server.Comments = value.Comments;
 
         await Services.Server().Save(server, dbContext);
+
+        await WriteAuditLog(user, $"Server {server.Name} ({server.Id}) updated");
 
         return Ok(await server.ToWeb(Services));
       }

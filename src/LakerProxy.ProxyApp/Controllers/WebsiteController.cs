@@ -106,6 +106,8 @@ namespace LakerProxy.ProxyApp.Controllers
 
         await Services.Website().Save(website, Context.Empty);
 
+        await WriteAuditLog(user, $"Website {website.Hostname} ({website.Id}) created");
+
         return CreatedAtRoute(RouteNames.WebsiteGetById, new { id = website.Id }, await website.ToWeb(Services));
       }
       catch (Exception e)
@@ -142,6 +144,8 @@ namespace LakerProxy.ProxyApp.Controllers
 
         await Yarp.WebsiteDataUpload.Save(Services, user, website, file);
 
+        await WriteAuditLog(user, $"Website zip '{file.FileName}' ({file.Length} bytes) uploaded to {website.Hostname} via management api");
+
         return Ok(await website.ToWeb(Services));
       }
       catch (Exception e)
@@ -164,6 +168,8 @@ namespace LakerProxy.ProxyApp.Controllers
       try
       {
         await Yarp.WebsiteDataUpload.Delete(Services, user, website);
+
+        await WriteAuditLog(user, $"Website zip removed from {website.Hostname}");
 
         return Ok(await website.ToWeb(Services));
       }
@@ -205,6 +211,8 @@ namespace LakerProxy.ProxyApp.Controllers
 
         await Services.Website().Save(website, dbContext);
 
+        await WriteAuditLog(user, $"Website {website.Hostname} ({website.Id}) updated");
+
         return Ok(await website.ToWeb(Services));
       }
       catch (Exception e)
@@ -229,12 +237,16 @@ namespace LakerProxy.ProxyApp.Controllers
         if (website.Kind == WebsiteKind.Offline)
         {
           await Services.Website().Delete(website, Context.Empty).ConfigureAwait(false);
+
+          await WriteAuditLog(user, $"Website {website.Hostname} ({website.Id}) deleted");
         }
         else
         {
           website.Kind = WebsiteKind.Offline;
 
           await Services.Website().Save(website, Context.Empty);
+
+          await WriteAuditLog(user, $"Website {website.Hostname} ({website.Id}) set offline");
         }
 
 

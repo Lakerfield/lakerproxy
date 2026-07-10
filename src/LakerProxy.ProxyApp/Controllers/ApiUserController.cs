@@ -102,6 +102,8 @@ namespace LakerProxy.ProxyApp.Controllers
 
         await Services.ApiUser().Save(apiUser, dbContext);
 
+        await WriteAuditLog(user, $"ApiUser {apiUser.Name} ({apiUser.Id}) created with rights {apiUser.Rights}");
+
         return CreatedAtRoute(RouteNames.ApiUserGetById, new { id = apiUser.Id }, await apiUser.ToWeb(Services));
       }
       catch (Exception e)
@@ -137,6 +139,8 @@ namespace LakerProxy.ProxyApp.Controllers
 
         await Services.ApiUser().Save(apiUser, dbContext);
 
+        await WriteAuditLog(user, $"ApiUser {apiUser.Name} ({apiUser.Id}) updated with rights {apiUser.Rights}");
+
         return Ok(await apiUser.ToWeb(Services));
       }
       catch (Exception e)
@@ -161,7 +165,11 @@ namespace LakerProxy.ProxyApp.Controllers
         var dbContext = Context.Empty.Add(user);
 
         if (user.Id != apiUser.Id)
+        {
           await Services.ApiUser().Delete(apiUser, dbContext).ConfigureAwait(false);
+
+          await WriteAuditLog(user, $"ApiUser {apiUser.Name} ({apiUser.Id}) deleted");
+        }
 
         return NoContent();
       }

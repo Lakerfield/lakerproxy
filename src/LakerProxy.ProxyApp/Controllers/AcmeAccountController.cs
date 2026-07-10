@@ -105,6 +105,8 @@ namespace LakerProxy.ProxyApp.Controllers
 
         await Services.AcmeAccount().Save(account, dbContext);
 
+        await WriteAuditLog(user, $"AcmeAccount {account.Code} ({account.Id}) created");
+
         return CreatedAtRoute(RouteNames.AcmeAccountGetById, new { id = account.Id }, account.ToWeb());
       }
       catch (Exception e)
@@ -147,6 +149,8 @@ namespace LakerProxy.ProxyApp.Controllers
         account.CertificateOrganizationUnit = value.CertificateOrganizationUnit;
 
         await Services.AcmeAccount().Save(account, dbContext);
+
+        await WriteAuditLog(user, $"AcmeAccount {account.Code} ({account.Id}) updated");
 
         return Ok(account.ToWeb());
       }

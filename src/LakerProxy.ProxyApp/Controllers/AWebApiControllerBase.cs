@@ -52,6 +52,11 @@ namespace LakerProxy.ProxyApp.Controllers
       return (true, user, null);
     }
 
+    protected Task WriteAuditLog(ApiUser user, string message)
+    {
+      return AuditLog.Write(Services, user, HttpContext.Connection.RemoteIpAddress, message);
+    }
+
     /// <summary>
     /// Counts a supplied-but-invalid bearer token towards the per-IP failure
     /// threshold; missing headers and insufficient rights do not count.

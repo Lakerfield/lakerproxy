@@ -109,6 +109,9 @@ namespace LakerProxy.ProxyApp.Yarp
 
         var data = await WebsiteDataUpload.Save(_services, user, website, file);
 
+        await ApiExtensions.AuditLog.Write(_services, user, context.Connection.RemoteIpAddress,
+          $"Website zip '{file.FileName}' ({file.Length} bytes) uploaded to {website.Hostname} via {UploadPath}");
+
         await WriteResult(context, StatusCodes.Status200OK,
           $"Uploaded {file.FileName} ({file.Length} bytes) to {website.Hostname}", data.Id);
       }
