@@ -23,6 +23,7 @@ namespace LakerProxy.ProxyApp.ApiExtensions
         Hostname = entity.Hostname,
         Fallback = entity.Fallback,
         ForceRenew = entity.ForceRenew,
+        AcmeChallengeLabel = entity.AcmeChallengeLabel ?? "",
         Scope = (LakerProxy.WebApi.CertificateScope)entity.Scope,
         Kind = (LakerProxy.WebApi.WebsiteKind)entity.Kind,
         Destination = entity.Destination,

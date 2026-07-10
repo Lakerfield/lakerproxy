@@ -64,6 +64,58 @@ namespace LakerProxy.ProxyPlayground.ViewModels
     }
 
 
+    /// <summary>
+    /// Name of the CNAME record to add to the DNS zone of the website hostname
+    /// for dns-01 validation, e.g. _acme-challenge.www.example.com
+    /// </summary>
+    public string DnsCnameName
+    {
+      get
+      {
+        var hostname = (Entity.Hostname ?? "").Trim().TrimEnd('.');
+        if (hostname.StartsWith("*."))
+          hostname = hostname.Substring(2);
+        if (hostname.Length == 0)
+          return "";
+        return $"_acme-challenge.{hostname}";
+      }
+    }
+
+    /// <summary>
+    /// Target of the CNAME record: the acme challenge label computed by the
+    /// server on save ({hostname-prefix}.{server AcmeChallengeZone})
+    /// </summary>
+    public string DnsCnameValue
+    {
+      get
+      {
+        if (string.IsNullOrWhiteSpace(Entity.AcmeChallengeLabel))
+          return "- available after first save -";
+        return Entity.AcmeChallengeLabel;
+      }
+    }
+
+    public void CopyDnsName()
+    {
+      System.Windows.Clipboard.SetText(DnsCnameName);
+    }
+
+    public bool CanCopyDnsName
+    {
+      get { return !string.IsNullOrWhiteSpace(DnsCnameName); }
+    }
+
+    public void CopyDnsValue()
+    {
+      System.Windows.Clipboard.SetText(Entity.AcmeChallengeLabel);
+    }
+
+    public bool CanCopyDnsValue
+    {
+      get { return !string.IsNullOrWhiteSpace(Entity.AcmeChallengeLabel); }
+    }
+
+
     public async void Ok()
     {
       if (!CanOk)

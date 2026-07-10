@@ -30,6 +30,33 @@
 
         <CheckBox IsChecked="{Binding Entity.ForceRenew}">Force renew certificate</CheckBox>
 
+        <TextBlock Text="Dns-01 validation CNAME record" Margin="0,8,0,0" />
+        <Border BorderBrush="LightGray" BorderThickness="1" Padding="6" Background="#FFF8F8F8">
+          <StackPanel>
+            <TextBlock Text="Add this CNAME record to the DNS zone of the hostname to delegate acme dns-01 validation to the proxy:"
+                       TextWrapping="Wrap" Foreground="DimGray" />
+            <Grid Margin="0,4,0,0">
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+              </Grid.ColumnDefinitions>
+              <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+              </Grid.RowDefinitions>
+
+              <TextBlock Text="Name" VerticalAlignment="Center" Margin="0,0,8,2" />
+              <TextBox Text="{Binding DnsCnameName, Mode=OneWay}" IsReadOnly="True" FontFamily="Consolas" Grid.Column="1" Margin="0,0,0,2" />
+              <Button Name="CopyDnsName" Content="Copy" Padding="4,2" Grid.Column="2" Margin="4,0,0,2" />
+
+              <TextBlock Text="Value" VerticalAlignment="Center" Margin="0,0,8,0" Grid.Row="1" />
+              <TextBox Text="{Binding DnsCnameValue, Mode=OneWay}" IsReadOnly="True" FontFamily="Consolas" Grid.Row="1" Grid.Column="1" />
+              <Button Name="CopyDnsValue" Content="Copy" Padding="4,2" Grid.Row="1" Grid.Column="2" Margin="4,0,0,0" />
+            </Grid>
+          </StackPanel>
+        </Border>
+
         <TextBlock Text="Destination" Margin="0,8,0,0" />
         <TextBox Text="{Binding Entity.Destination}"></TextBox>
 

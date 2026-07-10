@@ -36,6 +36,12 @@ namespace LakerProxy.WebApi.Models
 
     public bool ForceRenew { get; set; }
 
+    /// <summary>
+    /// Read-only: computed by the server on save as {hostname-prefix}.{server AcmeChallengeZone}.
+    /// Target of the _acme-challenge CNAME record for dns-01 validation.
+    /// </summary>
+    public string AcmeChallengeLabel { get; set; } = "";
+
     public string MaxRequestBodySize { get; set; } = "";
 
     public string Comments { get; set; } = "";
