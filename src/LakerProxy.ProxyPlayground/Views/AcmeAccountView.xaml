@@ -1,0 +1,88 @@
+<Window x:Class="LakerProxy.ProxyPlayground.Views.AcmeAccountView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="AcmeAccountView" MinHeight="480" MinWidth="640"
+        WindowStartupLocation="CenterOwner"
+        SizeToContent="WidthAndHeight">
+  <Grid Margin="8,0,8,8">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="*"/>
+      <RowDefinition Height="Auto"/>
+    </Grid.RowDefinitions>
+
+    <Grid>
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="*" MinWidth="300"/>
+        <ColumnDefinition Width="*" MinWidth="300"/>
+      </Grid.ColumnDefinitions>
+
+      <StackPanel Grid.Column="0" Margin="0,0,8,0">
+
+        <TextBlock Text="Code" />
+        <TextBox Text="{Binding Entity.Code}"></TextBox>
+
+        <TextBlock Text="Name" Margin="0,8,0,0" />
+        <TextBox Text="{Binding Entity.Name}"></TextBox>
+
+        <TextBlock Text="Type" Margin="0,8,0,0"></TextBlock>
+        <ComboBox SelectedValue="{Binding Entity.Type, Converter={StaticResource EnumListAcmeAccountTypes}}" ItemsSource="{StaticResource EnumListAcmeAccountTypes}"/>
+
+        <CheckBox IsChecked="{Binding Entity.Default}" Content="Default account" Margin="0,8,0,0" />
+
+        <TextBlock Text="Mail" Margin="0,8,0,0" />
+        <TextBox Text="{Binding Entity.Mail}"></TextBox>
+
+        <TextBlock Text="AcmeDiscoveryUrl (for Custom type)" Margin="0,8,0,0" />
+        <TextBox Text="{Binding Entity.AcmeDiscoveryUrl}"></TextBox>
+
+        <TextBlock Text="PreferredRootCertificate" Margin="0,8,0,0" />
+        <TextBox Text="{Binding Entity.PreferredRootCertificate}"></TextBox>
+
+        <TextBlock Text="AccountUrl (registration state, read-only)" Margin="0,8,0,0" />
+        <TextBox Text="{Binding Entity.AccountUrl, Mode=OneWay}" IsReadOnly="True" Foreground="DimGray"></TextBox>
+
+      </StackPanel>
+
+      <StackPanel Grid.Column="1" Margin="8,0,0,0">
+
+        <CheckBox IsChecked="{Binding Entity.UseEab}" Content="Use external account binding (EAB)" />
+
+        <TextBlock Text="EabKeyIdentifier" Margin="0,8,0,0" />
+        <TextBox Text="{Binding Entity.EabKeyIdentifier}"></TextBox>
+
+        <TextBlock Text="EabKey (empty = keep current)" Margin="0,8,0,0" />
+        <TextBox Text="{Binding Entity.EabKey}"></TextBox>
+
+        <TextBlock Text="EabKeyAlgorithm (HS256, HS384, HS512)" Margin="0,8,0,0" />
+        <TextBox Text="{Binding Entity.EabKeyAlgorithm}"></TextBox>
+
+        <TextBlock Text="Certificate country" Margin="0,24,0,0" />
+        <TextBox Text="{Binding Entity.CertificateCountryName}"></TextBox>
+
+        <TextBlock Text="Certificate state" Margin="0,8,0,0" />
+        <TextBox Text="{Binding Entity.CertificateState}"></TextBox>
+
+        <TextBlock Text="Certificate locality" Margin="0,8,0,0" />
+        <TextBox Text="{Binding Entity.CertificateLocality}"></TextBox>
+
+        <TextBlock Text="Certificate organization" Margin="0,8,0,0" />
+        <TextBox Text="{Binding Entity.CertificateOrganization}"></TextBox>
+
+        <TextBlock Text="Certificate organization unit" Margin="0,8,0,0" />
+        <TextBox Text="{Binding Entity.CertificateOrganizationUnit}"></TextBox>
+
+      </StackPanel>
+
+    </Grid>
+
+    <Grid Grid.Row="1" Height="24" Margin="0,8,0,0">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="*"/>
+        <ColumnDefinition Width="*"/>
+      </Grid.ColumnDefinitions>
+      <Button Name="Ok" Content="Ok" />
+      <Button Name="Cancel" Content="Cancel" Grid.Column="1" />
+    </Grid>
+
+  </Grid>
+</Window>

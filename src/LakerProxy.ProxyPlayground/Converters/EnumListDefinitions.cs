@@ -2,6 +2,7 @@ using LakerProxy.WebApi;
 
 namespace LakerProxy.ProxyPlayground.Converters
 {
+  public class EnumListAcmeAccountTypes : EnumListConverter<AcmeAccountTypes> { }
   public class EnumListApiUserRights : EnumListConverter<ApiUserRights> { }
   public class EnumListCertificateScope : EnumListConverter<CertificateScope> { }
   public class EnumListDestinationProtocol : EnumListConverter<DestinationProtocol> { }

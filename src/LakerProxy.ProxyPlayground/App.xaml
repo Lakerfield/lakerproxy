@@ -20,6 +20,7 @@
           <converters:StringsToMultiLineConverter x:Key="StringsToMultiLineConverter" />
           <converters:StringToCommaStringConverter x:Key="StringToCommaStringConverter" />
 
+          <converters:EnumListAcmeAccountTypes x:Key="EnumListAcmeAccountTypes" />
           <converters:EnumListApiUserRights x:Key="EnumListApiUserRights" />
           <converters:EnumListCertificateScope x:Key="EnumListCertificateScope" />
           <converters:EnumListDestinationProtocol x:Key="EnumListDestinationProtocol" />

@@ -150,7 +150,55 @@ namespace LakerProxy.WebApi
     }
 
     #endregion
-    
+
+    #region AcmeAccount
+
+    public async Task<IReadOnlyCollection<AcmeAccount>> AcmeAccountGet()
+    {
+      var request = CreateRequest(HttpMethod.Get, "/api/v1/acmeaccount");
+
+      var response = await _httpClient.SendAsync(request);
+      response.EnsureSuccessStatusCode();
+      var results = await response.Content.ReadFromJsonAsync<List<AcmeAccount>>(_jsonSerializerOptions);
+      return results;
+    }
+
+    public async Task<AcmeAccount> AcmeAccountGetById(string id)
+    {
+      var request = CreateRequest(HttpMethod.Get, $"/api/v1/acmeaccount/{id}");
+
+      var response = await _httpClient.SendAsync(request);
+      response.EnsureSuccessStatusCode();
+      var result = await response.Content.ReadFromJsonAsync<AcmeAccount>(_jsonSerializerOptions);
+      return result;
+    }
+
+    public async Task<AcmeAccount> AcmeAccountPost(AcmeAccount acmeAccount)
+    {
+      var request = CreateRequest(HttpMethod.Post, $"/api/v1/acmeaccount", acmeAccount);
+
+      var response = await _httpClient.SendAsync(request);
+      if (!response.IsSuccessStatusCode)
+        throw new WebException(await response.Content.ReadAsStringAsync());
+      response.EnsureSuccessStatusCode();
+      var result = await response.Content.ReadFromJsonAsync<AcmeAccount>(_jsonSerializerOptions);
+      return result;
+    }
+
+    public async Task<AcmeAccount> AcmeAccountPut(AcmeAccount acmeAccount)
+    {
+      var request = CreateRequest(HttpMethod.Put, $"/api/v1/acmeaccount/{acmeAccount.Id}", acmeAccount);
+
+      var response = await _httpClient.SendAsync(request);
+      if (!response.IsSuccessStatusCode)
+        throw new WebException(await response.Content.ReadAsStringAsync());
+      response.EnsureSuccessStatusCode();
+      var result = await response.Content.ReadFromJsonAsync<AcmeAccount>(_jsonSerializerOptions);
+      return result;
+    }
+
+    #endregion
+
     #region Certificate
 
     public async Task<Certificate> CertificateGetByName(string domain, string name)

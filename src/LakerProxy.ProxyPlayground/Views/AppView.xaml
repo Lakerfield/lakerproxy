@@ -25,6 +25,10 @@
         <Image Source="/Images/users3_edit.png" Height="32" />
       </Button>
 
+      <Button x:Name="OpenAcmeAccounts" ToolTip="Open acme accounts from proxy server">
+        <Image Source="/Images/preferences32.png" Height="32" />
+      </Button>
+
       <Button x:Name="OpenLogs" ToolTip="Open live logs from proxy server">
         <Image Source="/Images/document.png" Height="32" />
       </Button>
