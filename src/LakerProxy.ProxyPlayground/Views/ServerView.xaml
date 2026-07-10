@@ -1,0 +1,46 @@
+<Window x:Class="LakerProxy.ProxyPlayground.Views.ServerView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="ServerView" MinHeight="400" MinWidth="360"
+        WindowStartupLocation="CenterOwner"
+        SizeToContent="WidthAndHeight">
+  <Grid Margin="8,0,8,8">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="*"/>
+      <RowDefinition Height="Auto"/>
+    </Grid.RowDefinitions>
+
+    <StackPanel>
+
+      <TextBlock Text="Name (machine name, unique)" />
+      <TextBox Text="{Binding Entity.Name}"></TextBox>
+
+      <TextBlock Text="Hostname" Margin="0,8,0,0" />
+      <TextBox Text="{Binding Entity.Hostname}"></TextBox>
+
+      <TextBlock Text="Services" Margin="0,8,0,0" />
+      <CheckBox IsChecked="{Binding ServiceProxy}" Content="Proxy" Margin="0,4,0,0" />
+      <CheckBox IsChecked="{Binding ServiceLetsEncrypt}" Content="LetsEncrypt" Margin="0,4,0,0" />
+
+      <TextBlock Text="AcmeChallengeZone" Margin="0,8,0,0" />
+      <TextBox Text="{Binding Entity.AcmeChallengeZone}"></TextBox>
+
+      <TextBlock Text="AcmeAccount (code)" Margin="0,8,0,0" />
+      <TextBox Text="{Binding Entity.AcmeAccount}"></TextBox>
+
+      <TextBlock Text="Comments" Margin="0,8,0,0" />
+      <TextBox Text="{Binding Entity.Comments}" AcceptsReturn="True"></TextBox>
+
+    </StackPanel>
+
+    <Grid Grid.Row="1" Height="24" Margin="0,8,0,0">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="*"/>
+        <ColumnDefinition Width="*"/>
+      </Grid.ColumnDefinitions>
+      <Button Name="Ok" Content="Ok" />
+      <Button Name="Cancel" Content="Cancel" Grid.Column="1" />
+    </Grid>
+
+  </Grid>
+</Window>

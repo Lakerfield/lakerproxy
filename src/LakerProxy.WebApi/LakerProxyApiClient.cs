@@ -199,6 +199,54 @@ namespace LakerProxy.WebApi
 
     #endregion
 
+    #region Server
+
+    public async Task<IReadOnlyCollection<Server>> ServerGet()
+    {
+      var request = CreateRequest(HttpMethod.Get, "/api/v1/server");
+
+      var response = await _httpClient.SendAsync(request);
+      response.EnsureSuccessStatusCode();
+      var results = await response.Content.ReadFromJsonAsync<List<Server>>(_jsonSerializerOptions);
+      return results;
+    }
+
+    public async Task<Server> ServerGetById(string id)
+    {
+      var request = CreateRequest(HttpMethod.Get, $"/api/v1/server/{id}");
+
+      var response = await _httpClient.SendAsync(request);
+      response.EnsureSuccessStatusCode();
+      var result = await response.Content.ReadFromJsonAsync<Server>(_jsonSerializerOptions);
+      return result;
+    }
+
+    public async Task<Server> ServerPost(Server server)
+    {
+      var request = CreateRequest(HttpMethod.Post, $"/api/v1/server", server);
+
+      var response = await _httpClient.SendAsync(request);
+      if (!response.IsSuccessStatusCode)
+        throw new WebException(await response.Content.ReadAsStringAsync());
+      response.EnsureSuccessStatusCode();
+      var result = await response.Content.ReadFromJsonAsync<Server>(_jsonSerializerOptions);
+      return result;
+    }
+
+    public async Task<Server> ServerPut(Server server)
+    {
+      var request = CreateRequest(HttpMethod.Put, $"/api/v1/server/{server.Id}", server);
+
+      var response = await _httpClient.SendAsync(request);
+      if (!response.IsSuccessStatusCode)
+        throw new WebException(await response.Content.ReadAsStringAsync());
+      response.EnsureSuccessStatusCode();
+      var result = await response.Content.ReadFromJsonAsync<Server>(_jsonSerializerOptions);
+      return result;
+    }
+
+    #endregion
+
     #region Certificate
 
     public async Task<Certificate> CertificateGetByName(string domain, string name)

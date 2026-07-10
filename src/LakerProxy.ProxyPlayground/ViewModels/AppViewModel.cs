@@ -114,6 +114,31 @@ namespace LakerProxy.ProxyPlayground.ViewModels
 
 
 
+    public async void OpenServers()
+    {
+      var vm = new ProxyServersViewModel();
+
+      dynamic windowSettings = new ExpandoObject();
+      windowSettings.SizeToContent = SizeToContent.WidthAndHeight;
+
+      var windowManager = IoC.Get<IWindowManager>();
+      if (await windowManager.ShowDialogAsync(vm, null, windowSettings) != true)
+        return;
+
+      var proxyServer = vm.SelectedProxyServer;
+      if (proxyServer == null)
+        return;
+
+      var clonedProxyServer = proxyServer.Clone();
+      clonedProxyServer.Enabled = false;
+
+      var serversViewModel = new ServersViewModel(clonedProxyServer);
+      await ActivateItemAsync(serversViewModel, CancellationToken.None);
+      SelectedTab = serversViewModel;
+    }
+
+
+
     public async void OpenAcmeAccounts()
     {
       var vm = new ProxyServersViewModel();
