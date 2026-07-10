@@ -338,6 +338,18 @@ namespace LakerProxy.ProxyApp.Yarp
         }
       }
 
+      var certificateContext = websiteContext?.CertificateContext;
+
+      if (certificateContext == null)
+      {
+        // no (valid) certificate for this hostname (e.g. a connection to the
+        // bare ip): end the handshake with an AuthenticationException, which
+        // Kestrel logs at debug level, instead of continuing without a
+        // certificate and triggering an unhandled NotSupportedException error
+        Console.WriteLine($"NO-CERT:    {context?.ClientHelloInfo.ServerName} ${context?.Connection?.RemoteEndPoint}");
+        throw new AuthenticationException($"No certificate available for {sniHostname}");
+      }
+
       Console.WriteLine($"ACCEPT:     {context?.ClientHelloInfo.ServerName} ${context?.Connection?.RemoteEndPoint}");
 
       var certificateContext = websiteContext?.CertificateContext;
