@@ -128,6 +128,13 @@ namespace LakerProxy.ProxyApp.Controllers
       return (await Services.AcmeAccount().Find(code))?.Id ?? ShortGuid.Empty;
     }
 
+    protected async Task<ShortGuid> ConvertWebsiteHostnameToId(string hostname)
+    {
+      if (string.IsNullOrWhiteSpace(hostname))
+        return ShortGuid.Empty;
+      return (await Services.Website().FindByHostname(hostname.ToLower().Trim()))?.Id ?? ShortGuid.Empty;
+    }
+
 
   }
 }

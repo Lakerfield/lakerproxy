@@ -13,6 +13,12 @@ namespace LakerProxy.Models
     public string Hostname { get; set; }
     public ShortGuid PrimaryServer { get; set; }
 
+    /// <summary>
+    /// The single website this user is bound to; required for
+    /// ApiUserRights.UploadWebsiteData, the upload only works for this website.
+    /// </summary>
+    public ShortGuid Website { get; set; }
+
     public string ApiKey { get; set; }
 
     public ShortGuid AcmeAccount { get; set; }

@@ -56,8 +56,10 @@ namespace LakerProxy
     DownloadCertificate = 1 << 1,
     ManageWebsites = 1 << 2,
     ManageApiUsers = 1 << 3,
+    UploadWebsiteData = 1 << 4,
 
     RoleCertificate = Login | DownloadCertificate,
+    RoleWebsiteDeploy = Login | UploadWebsiteData,
     RoleFullAccess = Login | DownloadCertificate | ManageWebsites,
     RoleAdministrator = RoleFullAccess | ManageApiUsers,
   }

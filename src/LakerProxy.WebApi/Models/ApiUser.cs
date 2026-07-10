@@ -10,6 +10,12 @@ namespace LakerProxy.WebApi.Models
     public string Hostname { get; set; } = "";
     public string Server { get; set; } = "";
 
+    /// <summary>
+    /// Hostname of the single website this user is bound to; required for the
+    /// UploadWebsiteData right (website zip upload only works for this website).
+    /// </summary>
+    public string Website { get; set; } = "";
+
     public string ApiKey { get; set; }
 
     public string AcmeAccount { get; set; } = "";

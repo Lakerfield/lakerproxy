@@ -44,6 +44,7 @@ namespace LakerProxy.ProxyPlayground.ViewModels
         NotifyOfPropertyChange(() => CanCopy);
         NotifyOfPropertyChange(() => CanDelete);
         NotifyOfPropertyChange(() => CanDownloadCertificate);
+        NotifyOfPropertyChange(() => CanUploadZip);
       }
     }
 
@@ -60,6 +61,7 @@ namespace LakerProxy.ProxyPlayground.ViewModels
         NotifyOfPropertyChange(() => CanCopy);
         NotifyOfPropertyChange(() => CanDelete);
         NotifyOfPropertyChange(() => CanDownloadCertificate);
+        NotifyOfPropertyChange(() => CanUploadZip);
       }
     }
 
@@ -283,6 +285,43 @@ namespace LakerProxy.ProxyPlayground.ViewModels
     }
 
     public bool CanDownloadCertificate
+    {
+      get { return SelectedEntity != null; }
+    }
+
+
+
+    public async void UploadZip()
+    {
+      var entity = SelectedEntity;
+      if (entity == null)
+        return;
+
+      var openFileDialog = new OpenFileDialog();
+      openFileDialog.Filter = "Zip archive (*.zip)|*.zip|All files|*.*";
+      openFileDialog.Title = $"Upload website zip for {entity.Entity.Hostname}";
+      if (openFileDialog.ShowDialog() != true)
+        return;
+
+      FormEnabled = false;
+      try
+      {
+        var fileName = Path.GetFileName(openFileDialog.FileName);
+        var data = await File.ReadAllBytesAsync(openFileDialog.FileName);
+
+        await Client.WebsiteUploadWebsiteData(entity.Entity.Id, fileName, data);
+
+        MessageBox.Show($"Uploaded {fileName} ({data.Length / 1024:N0} KB) to {entity.Entity.Hostname}", "Upload website zip");
+      }
+      catch (Exception exception)
+      {
+        App.ShowException("Upload website zip failed", exception);
+      }
+      FormEnabled = true;
+      Refresh();
+    }
+
+    public bool CanUploadZip
     {
       get { return SelectedEntity != null; }
     }

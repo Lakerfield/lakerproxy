@@ -6,16 +6,6 @@ using LakerProxy.Models;
 
 namespace LakerProxy.Service
 {
-  public interface IAppService
-  {
-    ILogCollection Log { get; }
-    IApiUserCollection ApiUser { get; }
-    IServerCollection Server { get; }
-    IWebsiteCollection Website { get; }
-    IAcmeAccountCollection AcmeAccount { get; }
-    IWebsiteDataCollection WebsiteData { get; }
-  }
-
 
   public interface ILogCollection : IBaseCollection<Log>
   {

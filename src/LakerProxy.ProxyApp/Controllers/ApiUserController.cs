@@ -89,9 +89,10 @@ namespace LakerProxy.ProxyApp.Controllers
           Hostname = value.Hostname,
           Rights = (ApiUserRights)value.Rights,
           PrimaryServer = await ConvertServerNameToId(value.Server),
+          Website = await ConvertWebsiteHostnameToId(value.Website),
           Comments = value.Comments,
           //CreatedBy =
-          //CreatedAt = 
+          //CreatedAt =
         };
 
         apiUser.AcmeAccount = await ConvertAcmeAccountCodeToId(value.AcmeAccount);
@@ -130,6 +131,7 @@ namespace LakerProxy.ProxyApp.Controllers
         if (value.ApiKey.IsNotNullOrWhiteSpace())
           apiUser.ApiKey = value.ApiKey;
         apiUser.PrimaryServer = await ConvertServerNameToId(value.Server);
+        apiUser.Website = await ConvertWebsiteHostnameToId(value.Website);
         apiUser.Rights = (ApiUserRights) value.Rights;
         apiUser.Comments = value.Comments;
 

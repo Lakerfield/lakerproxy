@@ -30,6 +30,7 @@ namespace LakerProxy.ProxyApp.Controllers
     public const string WebsiteGetById = nameof(WebsiteGetById);
     public const string WebsiteCertificateGetById = nameof(WebsiteCertificateGetById);
     public const string WebsitePost = nameof(WebsitePost);
+    public const string WebsiteUploadWebsiteData = nameof(WebsiteUploadWebsiteData);
     public const string WebsitePutById = nameof(WebsitePutById);
     public const string WebsiteDelete = nameof(WebsiteDelete);
 

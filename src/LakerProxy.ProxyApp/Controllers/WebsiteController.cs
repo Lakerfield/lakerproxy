@@ -124,6 +124,32 @@ namespace LakerProxy.ProxyApp.Controllers
       }
     }
 
+    // POST: api/website/5/websitedata
+    [HttpPost("{id:shortguid}/websitedata", Name = RouteNames.WebsiteUploadWebsiteData)]
+    [ProducesResponseType(typeof(ApiEntity), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiError), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ApiError), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ApiError), StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> UploadWebsiteData(string id, IFormFile file)
+    {
+      var (success, user, website, error) = await GetWebsite(id, ApiUserRights.RoleFullAccess);
+      if (!success)
+        return error;
+      try
+      {
+        if (file == null || file.Length == 0)
+          return GenerateErrorNotFound("file", "Missing form file 'file'");
+
+        await Yarp.WebsiteDataUpload.Save(Services, user, website, file);
+
+        return Ok(await website.ToWeb(Services));
+      }
+      catch (Exception e)
+      {
+        return e.ToActionResult();
+      }
+    }
+
     // PUT: api/website/5
     [HttpPut("{id}", Name = RouteNames.WebsitePutById)]
     [ProducesResponseType(typeof(ApiEntity), StatusCodes.Status200OK)]

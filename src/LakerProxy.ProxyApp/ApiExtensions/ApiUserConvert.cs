@@ -28,6 +28,8 @@ namespace LakerProxy.ProxyApp.ApiExtensions
       if (!string.IsNullOrWhiteSpace(name))
         result.Server = name;
 
+      result.Website = (await services.Website().GetById(entity.Website))?.Hostname ?? "";
+
       result.AcmeAccount = (await services.AcmeAccount().GetById(entity.AcmeAccount))?.Code ?? "";
 
       return result;

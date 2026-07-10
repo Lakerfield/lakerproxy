@@ -8,7 +8,7 @@ using MongoDB.Driver;
 
 namespace LakerProxy.Storage
 {
-  public class AppMongoDbService : AMongoDbConfig, IAppService
+  public class AppMongoDbService : AMongoDbConfig
   {
     public ILogCollection Log { get; private set; }
     public IAcmeAccountCollection AcmeAccount { get; private set; }
@@ -16,7 +16,7 @@ namespace LakerProxy.Storage
     public IApiUserCollection ApiUser { get; private set; }
     public IServerCollection Server { get; private set; }
     public IWebsiteCollection Website { get; private set; }
-    public IWebsiteDataCollection WebsiteData { get; private set; }
+    public WebsiteDataCollection WebsiteData { get; private set; }
 
     public override Task PreInitialization(IMongoDatabase database)
     {

@@ -75,20 +75,20 @@ namespace LakerProxy.Storage.Collections
     public async Task<Entity?> Login(string apiKey)
     {
       if (string.IsNullOrWhiteSpace(apiKey))
-        return default;
+        return null;
 
       apiKey = apiKey.Trim();
       if (apiKey.Length < 20)
-        return default;
+        return null;
 
       var apiUser = await Collection.Find(Filter.Eq(e => e.ApiKey, apiKey)).FirstOrDefaultAsync();
       if (apiUser == null)
-        return default;
+        return null;
 
       if (apiUser.Rights.HasFlag(ApiUserRights.Login))
         return apiUser;
 
-      return default;
+      return null;
     }
   }
 }

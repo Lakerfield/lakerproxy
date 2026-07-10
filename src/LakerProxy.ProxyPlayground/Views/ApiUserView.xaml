@@ -25,6 +25,9 @@
         <TextBlock Text="Server" Margin="0,8,0,0" />
         <TextBox Text="{Binding Entity.Server}"></TextBox>
 
+        <TextBlock Text="Website" Margin="0,8,0,0" />
+        <TextBox Text="{Binding Entity.Website}" ToolTip="Hostname of the single website this user may upload to (required for the website deploy role)"></TextBox>
+
         <TextBlock Text="ApiKey" Margin="0,8,0,0" />
         <Grid>
           <Grid.ColumnDefinitions>
@@ -34,9 +37,6 @@
           <TextBox Text="{Binding Entity.ApiKey}"></TextBox>
           <Button Grid.Column="1" Name="GenerateApiKey" Content="Generate" Padding="4,2" />
         </Grid>
-
-        <TextBlock Text="Certificate" Margin="0,8,0,0" />
-        <ComboBox SelectedValue="{Binding Entity.Certificate, Converter={StaticResource EnumListCertificateKind}}" ItemsSource="{StaticResource EnumListCertificateKind}"/>
 
         <TextBlock Text="AcmeAccount" Margin="0,8,0,0" />
         <TextBox Text="{Binding Entity.AcmeAccount}"></TextBox>

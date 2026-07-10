@@ -53,7 +53,6 @@
         <DataGridTextColumn IsReadOnly="True" Header="Hostname" Binding="{Binding Entity.Hostname, Converter={StaticResource DomainExtensionFillConverter}}" CellStyle="{StaticResource CellRightAlign}"/>
         <DataGridComboBoxColumn IsReadOnly="True" Header="Rights" SelectedValueBinding="{Binding Entity.Rights, Converter={StaticResource EnumListApiUserRights}}" ItemsSource="{StaticResource EnumListApiUserRights}" />
         <DataGridTextColumn IsReadOnly="True" Header="Server" Binding="{Binding Entity.Server}" />
-        <DataGridComboBoxColumn IsReadOnly="True" Header="Certificate" SelectedValueBinding="{Binding Entity.Certificate, Converter={StaticResource EnumListCertificateKind}}" ItemsSource="{StaticResource EnumListCertificateKind}" />
         <DataGridTextColumn IsReadOnly="True" Header="Acme" Binding="{Binding Entity.AcmeAccount}"/>
         <DataGridTextColumn IsReadOnly="True" Header="Comments" Binding="{Binding Entity.Comments}"/>
 

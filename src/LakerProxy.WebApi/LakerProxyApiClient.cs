@@ -323,6 +323,23 @@ namespace LakerProxy.WebApi
       response.EnsureSuccessStatusCode();
     }
 
+    public async Task<Website> WebsiteUploadWebsiteData(string id, string fileName, byte[] zipData)
+    {
+      var request = CreateRequest(HttpMethod.Post, $"/api/v1/website/{id}/websitedata");
+
+      var multiPart = new MultipartFormDataContent();
+      var fileContent = new ByteArrayContent(zipData);
+      fileContent.Headers.ContentType = MediaTypeHeaderValue.Parse("application/x-zip-compressed");
+      multiPart.Add(fileContent, "file", fileName);
+      request.Content = multiPart;
+
+      var response = await _httpClient.SendAsync(request);
+      if (!response.IsSuccessStatusCode)
+        throw new WebException(await response.Content.ReadAsStringAsync());
+      var result = await response.Content.ReadFromJsonAsync<Website>(_jsonSerializerOptions);
+      return result;
+    }
+
     #endregion
 
     #region Log

@@ -1,17 +1,20 @@
 using System;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
-using Lakerfield.Acme;
-using LakerProxy.ProxyApp.Routing.Constraints;
-using LakerProxy.ProxyApp.Security;
-using LakerProxy.ProxyApp.Yarp;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Features;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 using Yarp.ReverseProxy.Configuration;
+using Lakerfield.Acme;
+using LakerProxy.ProxyApp.Providers;
+using LakerProxy.ProxyApp.Routing.Constraints;
+using LakerProxy.ProxyApp.Security;
+using LakerProxy.ProxyApp.Yarp;
 
 namespace LakerProxy.ProxyApp
 {
@@ -70,6 +73,7 @@ namespace LakerProxy.ProxyApp
           //options.JsonSerializerOptions.IgnoreNullValues = true;
         });
 
+#if DEBUG
       services.AddSwaggerGen(c =>
       {
         // Your custom configuration
@@ -114,13 +118,16 @@ namespace LakerProxy.ProxyApp
         c.OperationFilter<SwaggerLimitContentTypeFilter>();
         c.OperationFilter<SwaggerSetObsoleteFilter>();
       });
-
+#endif
 
       services.AddMaliciousIpFilter(options =>
       {
         options.BlockedStatusCode = StatusCodes.Status403Forbidden;
         options.RuntimeCleanupInterval = TimeSpan.FromMinutes(1);
       });
+
+      services.AddHttpContextAccessor();
+      services.AddSingleton<SuperAwesomeFileProvider>();
 
       services.AddSingleton<BackgroundServices.LetsEncryptTrigger>();
       if (Program.Server.Services.HasFlag(ServerServices.Proxy))
@@ -150,15 +157,34 @@ namespace LakerProxy.ProxyApp
 
       app.UseMaxRequestBodySize();
 
+      app.UseWebsiteUpload();
+
+      // Static-site branch: UseStaticFiles is middleware and cannot be called per
+      // request, so build a sub-pipeline once and hand its RequestDelegate to
+      // MapWebsiteKind.
+      var staticSiteApp = app.New();
+      staticSiteApp.Use(async (context, next) =>
+      {
+        if (context.Request.Path == "/")
+          context.Request.Path = "/index.html";
+        await next();
+      });
+      staticSiteApp.UseStaticFiles(new StaticFileOptions()
+      {
+        FileProvider = app.ApplicationServices.GetRequiredService<SuperAwesomeFileProvider>(),
+        ServeUnknownFileTypes = true,
+        HttpsCompression = HttpsCompressionMode.DoNotCompress,
+      });
+      staticSiteApp.Run(context =>
+      {
+        context.Response.StatusCode = 404;
+        return Task.CompletedTask;
+      });
+      var staticSiteBranch = staticSiteApp.Build();
+
       app.MapWebsiteKind(
 
-        (WebsiteKind.StaticSite, async (context) => {
-            var website = context.GetWebsite();
-
-            //context.
-            
-            context.Response.StatusCode = 404;
-          }),
+        (WebsiteKind.StaticSite, staticSiteBranch),
 
         (WebsiteKind.Redirect, async (context) => {
           var website = context.GetWebsite();
@@ -216,11 +242,13 @@ namespace LakerProxy.ProxyApp
         endpoints.MapControllers();
       });
 
+#if DEBUG
       app.UseSwagger();
       app.UseSwaggerUI(c =>
       {
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "LakerProxy-API-v1");
       });
+#endif
 
       app.Run(async context =>
       {
