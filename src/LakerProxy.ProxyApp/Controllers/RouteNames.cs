@@ -10,6 +10,12 @@ namespace LakerProxy.ProxyApp.Controllers
 
     public const string CertificateGetByName = nameof(CertificateGetByName);
 
+    public const string LogGet = nameof(LogGet);
+    public const string LogStream = nameof(LogStream);
+
+    public const string AcmeLogGet = nameof(AcmeLogGet);
+    public const string AcmeLogStream = nameof(AcmeLogStream);
+
     public const string WebsiteGet = nameof(WebsiteGet);
     public const string WebsiteGetById = nameof(WebsiteGetById);
     public const string WebsiteCertificateGetById = nameof(WebsiteCertificateGetById);

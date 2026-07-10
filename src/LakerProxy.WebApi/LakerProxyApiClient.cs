@@ -1,11 +1,14 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Threading;
 using System.Threading.Tasks;
 using LakerProxy.WebApi.Models;
 
@@ -18,6 +21,7 @@ namespace LakerProxy.WebApi
     private readonly HttpClient _httpClient;
     private readonly LakerProxyApiOptions _options;
     private readonly JsonSerializerOptions _jsonSerializerOptions;
+    private HttpClient? _streamingHttpClient;
 
 
     public LakerProxyApiClient(LakerProxyApiOptions options, HttpClient? httpClient = null)
@@ -37,6 +41,33 @@ namespace LakerProxy.WebApi
       _jsonSerializerOptions = new JsonSerializerOptions();
       _jsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
       _jsonSerializerOptions.PropertyNameCaseInsensitive = true;
+    }
+
+    /// <summary>
+    /// Separate client for long-lived streaming responses (SSE): the default
+    /// HttpClient timeout of 100 seconds would abort an open stream.
+    /// </summary>
+    private HttpClient StreamingHttpClient
+    {
+      get
+      {
+        if (_streamingHttpClient != null)
+          return _streamingHttpClient;
+
+        var client = new HttpClient(new HttpClientHandler()
+        {
+          AllowAutoRedirect = false,
+        })
+        {
+          Timeout = Timeout.InfiniteTimeSpan,
+        };
+        if (!string.IsNullOrWhiteSpace(_options.ApiBaseUrl))
+          client.BaseAddress = new Uri(_options.ApiBaseUrl);
+        if (!string.IsNullOrWhiteSpace(_options.ApiKey))
+          client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("bearer", _options.ApiKey);
+
+        return _streamingHttpClient = client;
+      }
     }
 
 
@@ -197,7 +228,148 @@ namespace LakerProxy.WebApi
     }
 
     #endregion
-    
+
+    #region Log
+
+    public async Task<IReadOnlyCollection<LogEntry>> LogGet(DateTime? dateFrom = null, DateTime? dateTill = null, int take = 200)
+    {
+      var query = $"?take={take}";
+      if (dateFrom.HasValue)
+        query += $"&dateFrom={Uri.EscapeDataString(dateFrom.Value.ToString("O"))}";
+      if (dateTill.HasValue)
+        query += $"&dateTill={Uri.EscapeDataString(dateTill.Value.ToString("O"))}";
+
+      var request = CreateRequest(HttpMethod.Get, $"/api/v1/log{query}");
+
+      var response = await _httpClient.SendAsync(request);
+      response.EnsureSuccessStatusCode();
+      var results = await response.Content.ReadFromJsonAsync<List<LogEntry>>(_jsonSerializerOptions);
+      return results;
+    }
+
+    /// <summary>
+    /// Opens the server-sent events stream and yields log entries until the
+    /// connection drops or the token is cancelled. Reconnecting is up to the caller.
+    /// </summary>
+    public async IAsyncEnumerable<LogEntry> LogStream(
+      int history = 100,
+      [EnumeratorCancellation] CancellationToken cancellationToken = default)
+    {
+      var request = CreateRequest(HttpMethod.Get, $"/api/v1/log/stream?history={history}");
+
+      using var response = await StreamingHttpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+      response.EnsureSuccessStatusCode();
+
+      using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
+      using var reader = new StreamReader(stream);
+
+      string? dataBuffer = null;
+      while (!cancellationToken.IsCancellationRequested)
+      {
+        var line = await reader.ReadLineAsync(cancellationToken);
+        if (line == null)
+          yield break; // server closed the stream
+
+        if (line.Length == 0)
+        {
+          // blank line = dispatch buffered event
+          if (dataBuffer == null)
+            continue;
+          var entry = JsonSerializer.Deserialize<LogEntry>(dataBuffer, _jsonSerializerOptions);
+          dataBuffer = null;
+          if (entry != null)
+            yield return entry;
+          continue;
+        }
+
+        if (line[0] == ':')
+          continue; // comment / keep-alive
+
+        if (line.StartsWith("data:", StringComparison.Ordinal))
+        {
+          var payload = line.Substring(5).TrimStart();
+          dataBuffer = dataBuffer == null ? payload : dataBuffer + "\n" + payload;
+        }
+        // other fields (id:, event:, retry:) are ignored for now
+      }
+    }
+
+    #endregion
+
+    #region AcmeLog
+
+    public async Task<IReadOnlyCollection<AcmeLogEntry>> AcmeLogGet(DateTime? dateFrom = null, DateTime? dateTill = null, string? domain = null, int take = 200)
+    {
+      var query = $"?take={take}";
+      if (dateFrom.HasValue)
+        query += $"&dateFrom={Uri.EscapeDataString(dateFrom.Value.ToString("O"))}";
+      if (dateTill.HasValue)
+        query += $"&dateTill={Uri.EscapeDataString(dateTill.Value.ToString("O"))}";
+      if (!string.IsNullOrWhiteSpace(domain))
+        query += $"&domain={Uri.EscapeDataString(domain)}";
+
+      var request = CreateRequest(HttpMethod.Get, $"/api/v1/acmelog{query}");
+
+      var response = await _httpClient.SendAsync(request);
+      response.EnsureSuccessStatusCode();
+      var results = await response.Content.ReadFromJsonAsync<List<AcmeLogEntry>>(_jsonSerializerOptions);
+      return results;
+    }
+
+    /// <summary>
+    /// Opens the server-sent events stream and yields acme log entries until the
+    /// connection drops or the token is cancelled. Reconnecting is up to the caller.
+    /// </summary>
+    public async IAsyncEnumerable<AcmeLogEntry> AcmeLogStream(
+      int history = 100,
+      string? domain = null,
+      [EnumeratorCancellation] CancellationToken cancellationToken = default)
+    {
+      var query = $"?history={history}";
+      if (!string.IsNullOrWhiteSpace(domain))
+        query += $"&domain={Uri.EscapeDataString(domain)}";
+
+      var request = CreateRequest(HttpMethod.Get, $"/api/v1/acmelog/stream{query}");
+
+      using var response = await StreamingHttpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+      response.EnsureSuccessStatusCode();
+
+      using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
+      using var reader = new StreamReader(stream);
+
+      string? dataBuffer = null;
+      while (!cancellationToken.IsCancellationRequested)
+      {
+        var line = await reader.ReadLineAsync(cancellationToken);
+        if (line == null)
+          yield break; // server closed the stream
+
+        if (line.Length == 0)
+        {
+          // blank line = dispatch buffered event
+          if (dataBuffer == null)
+            continue;
+          var entry = JsonSerializer.Deserialize<AcmeLogEntry>(dataBuffer, _jsonSerializerOptions);
+          dataBuffer = null;
+          if (entry != null)
+            yield return entry;
+          continue;
+        }
+
+        if (line[0] == ':')
+          continue; // comment / keep-alive
+
+        if (line.StartsWith("data:", StringComparison.Ordinal))
+        {
+          var payload = line.Substring(5).TrimStart();
+          dataBuffer = dataBuffer == null ? payload : dataBuffer + "\n" + payload;
+        }
+        // other fields (id:, event:, retry:) are ignored for now
+      }
+    }
+
+    #endregion
+
 
   }
 }

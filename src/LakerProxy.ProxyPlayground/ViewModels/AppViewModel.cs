@@ -89,6 +89,56 @@ namespace LakerProxy.ProxyPlayground.ViewModels
 
 
 
+    public async void OpenLogs()
+    {
+      var vm = new ProxyServersViewModel();
+
+      dynamic windowSettings = new ExpandoObject();
+      windowSettings.SizeToContent = SizeToContent.WidthAndHeight;
+
+      var windowManager = IoC.Get<IWindowManager>();
+      if (await windowManager.ShowDialogAsync(vm, null, windowSettings) != true)
+        return;
+
+      var proxyServer = vm.SelectedProxyServer;
+      if (proxyServer == null)
+        return;
+
+      var clonedProxyServer = proxyServer.Clone();
+      clonedProxyServer.Enabled = false;
+
+      var logsViewModel = new LogsViewModel(clonedProxyServer);
+      await ActivateItemAsync(logsViewModel, CancellationToken.None);
+      SelectedTab = logsViewModel;
+    }
+
+
+
+    public async void OpenAcmeLogs()
+    {
+      var vm = new ProxyServersViewModel();
+
+      dynamic windowSettings = new ExpandoObject();
+      windowSettings.SizeToContent = SizeToContent.WidthAndHeight;
+
+      var windowManager = IoC.Get<IWindowManager>();
+      if (await windowManager.ShowDialogAsync(vm, null, windowSettings) != true)
+        return;
+
+      var proxyServer = vm.SelectedProxyServer;
+      if (proxyServer == null)
+        return;
+
+      var clonedProxyServer = proxyServer.Clone();
+      clonedProxyServer.Enabled = false;
+
+      var acmeLogsViewModel = new AcmeLogsViewModel(clonedProxyServer);
+      await ActivateItemAsync(acmeLogsViewModel, CancellationToken.None);
+      SelectedTab = acmeLogsViewModel;
+    }
+
+
+
     public async void OpenSettingsFile()
     {
       System.Diagnostics.Process.Start("notepad.exe", DataManager.Current.SettingsFullname);

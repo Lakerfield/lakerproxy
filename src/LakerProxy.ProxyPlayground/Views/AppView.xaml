@@ -25,6 +25,14 @@
         <Image Source="/Images/users3_edit.png" Height="32" />
       </Button>
 
+      <Button x:Name="OpenLogs" ToolTip="Open live logs from proxy server">
+        <Image Source="/Images/document.png" Height="32" />
+      </Button>
+
+      <Button x:Name="OpenAcmeLogs" ToolTip="Open live acme logs from proxy server">
+        <Image Source="/Images/cloud_computing_download.png" Height="32" />
+      </Button>
+
       <Button x:Name="OpenSettingsFile" ToolTip="Open app settings file in notepad" Margin="8,0,0,0">
         <Image Source="/Images/document_down.png" Height="32" />
       </Button>

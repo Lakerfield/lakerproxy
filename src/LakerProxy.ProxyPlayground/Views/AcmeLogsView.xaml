@@ -1,0 +1,49 @@
+<UserControl x:Class="LakerProxy.ProxyPlayground.Views.AcmeLogsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             MinHeight="200" MinWidth="300">
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="*"/>
+    </Grid.RowDefinitions>
+
+    <StackPanel Orientation="Horizontal">
+
+      <ToggleButton IsChecked="{Binding Paused}" ToolTip="Pause (buffer incoming entries)">
+        <Image Source="/Images/media_stop_red32.png" Height="32" />
+      </ToggleButton>
+
+      <Button x:Name="Clear" ToolTip="Clear list" Margin="8,0,0,0">
+        <Image Source="/Images/garbage_empty32.png" Height="32" />
+      </Button>
+
+      <TextBlock Text="Domain:" VerticalAlignment="Center" Margin="16,0,4,0" />
+      <TextBox Text="{Binding DomainFilter, UpdateSourceTrigger=PropertyChanged}" Width="160" VerticalAlignment="Center" />
+
+      <TextBlock Text="{Binding ConnectionStatus}" VerticalAlignment="Center" Margin="16,0,0,0" Foreground="DimGray" />
+
+    </StackPanel>
+
+    <DataGrid x:Name="LogDataGrid"
+              ItemsSource="{Binding Entries}"
+              AutoGenerateColumns="False"
+              CanUserAddRows="False"
+              IsReadOnly="True"
+              FontFamily="Consolas"
+              EnableRowVirtualization="True"
+              VirtualizingPanel.VirtualizationMode="Recycling"
+              Grid.Row="1">
+
+      <DataGrid.Columns>
+        <DataGridTextColumn IsReadOnly="True" Header="Date" Binding="{Binding Date, StringFormat='yyyy-MM-dd HH:mm:ss'}" />
+        <DataGridTextColumn IsReadOnly="True" Header="Machine" Binding="{Binding Machine}" />
+        <DataGridTextColumn IsReadOnly="True" Header="Domain" Binding="{Binding Domain}" />
+        <DataGridTextColumn IsReadOnly="True" Header="Step" Binding="{Binding Step}" />
+        <DataGridTextColumn IsReadOnly="True" Header="Message" Binding="{Binding Message}" Width="*" />
+      </DataGrid.Columns>
+
+    </DataGrid>
+
+  </Grid>
+</UserControl>
