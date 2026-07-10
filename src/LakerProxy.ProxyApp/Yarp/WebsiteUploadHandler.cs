@@ -115,9 +115,9 @@ namespace LakerProxy.ProxyApp.Yarp
         await WriteResult(context, StatusCodes.Status200OK,
           $"Uploaded {file.FileName} ({file.Length} bytes) to {website.Hostname}", data.Id);
       }
-      catch (InvalidDataException)
+      catch (InvalidDataException e)
       {
-        await WriteResult(context, StatusCodes.Status400BadRequest, "File is not a valid zip archive");
+        await WriteResult(context, StatusCodes.Status400BadRequest, e.Message);
       }
       catch (Exception)
       {
@@ -154,10 +154,26 @@ namespace LakerProxy.ProxyApp.Yarp
       }
 
       // validate the zip before storing it
+      var maxSize = ApiExtensions.WebsiteConvert.ResolveMaxWebsiteDataSize(website.MaxWebsiteDataSize);
       using (var archive = new ZipArchive(new MemoryStream(bytes), ZipArchiveMode.Read, leaveOpen: false))
       {
         if (archive.Entries.Count == 0)
           throw new InvalidDataException("Zip archive is empty");
+
+        // count the actual decompressed bytes, entry headers can lie (zip bomb)
+        long totalSize = 0;
+        var buffer = new byte[81920];
+        foreach (var entry in archive.Entries)
+        {
+          using var stream = entry.Open();
+          int read;
+          while ((read = stream.Read(buffer, 0, buffer.Length)) > 0)
+          {
+            totalSize += read;
+            if (totalSize > maxSize)
+              throw new InvalidDataException($"Zip content exceeds the maximum uncompressed size of {ApiExtensions.WebsiteConvert.ConvertToMaxWebsiteDataSizeString(maxSize)} configured on the website");
+          }
+        }
       }
 
       var dbContext = Context.Empty.Add(user);

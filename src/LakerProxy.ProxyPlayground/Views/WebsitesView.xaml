@@ -95,6 +95,8 @@
         <DataGridComboBoxColumn IsReadOnly="True" Header="Filter" SelectedValueBinding="{Binding Entity.Filter, Converter={StaticResource EnumListFilterKind}}" ItemsSource="{StaticResource EnumListFilterKind}" />
         <DataGridTextColumn IsReadOnly="True" Header="FilterAcl" Binding="{Binding Entity.FilterAcl, Converter={StaticResource StringsToCommaStringConverter}}" />
         <DataGridTextColumn IsReadOnly="True" Header="MaxReq" Binding="{Binding Entity.MaxRequestBodySize}" />
+        <DataGridCheckBoxColumn IsReadOnly="True" Header="Data" Binding="{Binding Entity.HasWebsiteData}" />
+        <DataGridTextColumn IsReadOnly="True" Header="MaxData" Binding="{Binding Entity.MaxWebsiteDataSize}" />
         <DataGridTextColumn IsReadOnly="True" Header="Id" Binding="{Binding Entity.Id}" />
       </DataGrid.Columns>
 

@@ -97,6 +97,7 @@ namespace LakerProxy.ProxyApp.Controllers
           FilterAcl = TestFilterAcl(value.FilterAcl).ToList(),
           FilterDestination = value.FilterDestination,
           MaxRequestBodySize = WebsiteConvert.ConvertToMaxRequestBodySize(value.MaxRequestBodySize),
+          MaxWebsiteDataSize = WebsiteConvert.ConvertToMaxWebsiteDataSize(value.MaxWebsiteDataSize),
           Comments = value.Comments,
           //CreatedBy =
           //CreatedAt = 
@@ -207,6 +208,7 @@ namespace LakerProxy.ProxyApp.Controllers
         website.FilterDestination = value.FilterDestination;
         website.AcmeAccount = await ConvertAcmeAccountCodeToId(value.AcmeAccount);
         website.MaxRequestBodySize = WebsiteConvert.ConvertToMaxRequestBodySize(value.MaxRequestBodySize);
+        website.MaxWebsiteDataSize = WebsiteConvert.ConvertToMaxWebsiteDataSize(value.MaxWebsiteDataSize);
         website.Comments = value.Comments;
 
         await Services.Website().Save(website, dbContext);

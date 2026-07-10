@@ -51,6 +51,9 @@ namespace LakerProxy.Bson
         cm.GetMemberMap(c => c.MaxRequestBodySize)
           .SetDefaultValue(0L)
           .SetIgnoreIfDefault(true);
+        cm.GetMemberMap(c => c.MaxWebsiteDataSize)
+          .SetDefaultValue(0L)
+          .SetIgnoreIfDefault(true);
       });
       BsonClassMap.RegisterClassMap<WebsiteData>(AutoMapAndShortGuidId);
     }

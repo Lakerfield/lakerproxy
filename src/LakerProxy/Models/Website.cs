@@ -46,6 +46,12 @@ namespace LakerProxy.Models
 
     public long MaxRequestBodySize { get; set; } = 0;
 
+    /// <summary>
+    /// Maximum uncompressed size of the uploaded website zip (WebsiteData).
+    /// 0 = default (20MB), -1 = max.
+    /// </summary>
+    public long MaxWebsiteDataSize { get; set; } = 0;
+
     public string Comments { get; set; } = "";
 
     private List<CertificateData>? _certificates;

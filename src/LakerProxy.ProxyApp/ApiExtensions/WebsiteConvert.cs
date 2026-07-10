@@ -47,6 +47,7 @@ namespace LakerProxy.ProxyApp.ApiExtensions
       result.AcmeAccount = (await services.AcmeAccount().GetById(entity.AcmeAccount))?.Code ?? "";
 
       result.MaxRequestBodySize = ConvertToMaxRequestBodySizeString(entity.MaxRequestBodySize);
+      result.MaxWebsiteDataSize = ConvertToMaxWebsiteDataSizeString(entity.MaxWebsiteDataSize);
 
       return result;
     }
@@ -117,6 +118,68 @@ namespace LakerProxy.ProxyApp.ApiExtensions
           return bytes;
 
       throw new ArgumentException($"Invalid MaxRequestBodySize value: '{value}'. Use a format like '100KB', '10MB', 'default', or 'max'.");
+    }
+
+
+    public const long DefaultWebsiteDataSize = 20 * MB;
+    public const long MaxWebsiteDataSizeLimit = 256 * MB;
+
+    public static string ConvertToMaxWebsiteDataSizeString(long bytes)
+    {
+      if (bytes == MaxValue || bytes >= MaxWebsiteDataSizeLimit)
+        return Max;
+
+      if (bytes == DefaultValue || bytes == DefaultWebsiteDataSize || bytes < MaxValue)
+        return Default;
+
+      if (bytes % MB == 0)
+        return $"{bytes / MB} MB";
+
+      if (bytes % KB == 0)
+        return $"{bytes / KB} KB";
+
+      return $"{bytes}";
+    }
+
+    public static long ConvertToMaxWebsiteDataSize(string value)
+    {
+      if (string.IsNullOrWhiteSpace(value))
+        return DefaultValue;
+
+      value = value.Trim();
+
+      if (value.Equals(Default, StringComparison.OrdinalIgnoreCase))
+        return DefaultValue;
+
+      if (value.Equals(Max, StringComparison.OrdinalIgnoreCase))
+        return MaxValue;
+
+      if (value.EndsWith("MB", StringComparison.OrdinalIgnoreCase) && long.TryParse(value[..^2].Trim(), out var mb))
+        return mb * MB;
+
+      if (value.EndsWith("KB", StringComparison.OrdinalIgnoreCase) && long.TryParse(value[..^2].Trim(), out var kb))
+        return kb * KB;
+
+      if (long.TryParse(value, out var bytes))
+        if (bytes > 0 && bytes < MaxWebsiteDataSizeLimit)
+          return bytes;
+
+      throw new ArgumentException($"Invalid MaxWebsiteDataSize value: '{value}'. Use a format like '100KB', '5MB', 'default', or 'max'.");
+    }
+
+    /// <summary>
+    /// Resolves the stored MaxWebsiteDataSize value to an effective byte limit:
+    /// 0/default = 20MB, -1/max = 256MB, otherwise the value capped at 256MB.
+    /// </summary>
+    public static long ResolveMaxWebsiteDataSize(long value)
+    {
+      if (value == MaxValue)
+        return MaxWebsiteDataSizeLimit;
+
+      if (value <= 0)
+        return DefaultWebsiteDataSize;
+
+      return Math.Min(value, MaxWebsiteDataSizeLimit);
     }
   }
 }

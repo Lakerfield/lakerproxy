@@ -78,6 +78,9 @@
         <TextBlock Text="Max request body size" Margin="0,8,0,0" />
         <TextBox Text="{Binding Entity.MaxRequestBodySize}" ToolTip="Leave empty or type 'default' for the default 30MB limit. Use values like '120KB', '5MB', or '128MB' (max)."></TextBox>
 
+        <TextBlock Text="Max website data size" Margin="0,8,0,0" />
+        <TextBox Text="{Binding Entity.MaxWebsiteDataSize}" ToolTip="Maximum uncompressed size of the uploaded website zip. Leave empty or type 'default' for the default 20MB limit. Use values like '5MB' or '50MB', or 'max' (256MB)."></TextBox>
+
         <TextBlock Text="Comments" Margin="0,8,0,0" />
         <TextBox Text="{Binding Entity.Comments}" AcceptsReturn="True"></TextBox>
 
