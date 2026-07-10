@@ -340,6 +340,17 @@ namespace LakerProxy.WebApi
       return result;
     }
 
+    public async Task<Website> WebsiteDeleteWebsiteData(string id)
+    {
+      var request = CreateRequest(HttpMethod.Delete, $"/api/v1/website/{id}/websitedata");
+
+      var response = await _httpClient.SendAsync(request);
+      if (!response.IsSuccessStatusCode)
+        throw new WebException(await response.Content.ReadAsStringAsync());
+      var result = await response.Content.ReadFromJsonAsync<Website>(_jsonSerializerOptions);
+      return result;
+    }
+
     #endregion
 
     #region Log

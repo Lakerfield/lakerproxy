@@ -2,12 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
 using Lakerfield;
 using Lakerfield.Runtime;
 using LakerProxy.Models;
 using LakerProxy.ProxyApp.ApiExtensions;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+using LakerProxy.ProxyApp.Security;
 using ApiError = LakerProxy.WebApi.Models.ApiError;
 
 namespace LakerProxy.ProxyApp.Controllers
@@ -32,16 +34,33 @@ namespace LakerProxy.ProxyApp.Controllers
 
       var key = authHeader.Substring(7);
       if (key.Length < 20)
+      {
+        RegisterAuthFailure();
         return (false, default, GenerateErrorUnauthorized("invalid-token-to-short", "Invalid token to short"));
+      }
 
       var user = await Services.ApiUser().Login(key);
       if (user == null)
+      {
+        RegisterAuthFailure();
         return (false, default, GenerateErrorUnauthorized("invalid-token", "Invalid token"));
+      }
 
       if (!user.Rights.HasFlag(requiredRights))
         return (false, default, GenerateErrorUnauthorized("invalid-rights", "Invalid rights"));
-      
+
       return (true, user, null);
+    }
+
+    /// <summary>
+    /// Counts a supplied-but-invalid bearer token towards the per-IP failure
+    /// threshold; missing headers and insufficient rights do not count.
+    /// </summary>
+    private void RegisterAuthFailure()
+    {
+      HttpContext.RequestServices
+        .GetService<AuthFailureTracker>()
+        ?.RegisterFailure(HttpContext.Connection.RemoteIpAddress);
     }
 
     protected async Task<(bool success, ApiUser user, Website website, IActionResult failedResult)> GetWebsite(string idRaw, ApiUserRights requiredRights)

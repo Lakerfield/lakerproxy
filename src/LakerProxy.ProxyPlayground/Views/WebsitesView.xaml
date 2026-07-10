@@ -41,6 +41,10 @@
         <Image Source="/Images/element_run32.png" Height="32" />
       </Button>
 
+      <Button x:Name="DeleteZip" ToolTip="Delete uploaded website zip">
+        <Image Source="/Images/garbage_empty32.png" Height="32" />
+      </Button>
+
       <ToggleButton IsChecked="{Binding ShowAcmeLog}" ToolTip="Show live acme log" Margin="8,0,0,0">
         <Image Source="/Images/document.png" Height="32" />
       </ToggleButton>

@@ -3,12 +3,13 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 using Lakerfield;
 using Lakerfield.Runtime;
 using Lakerfield.Storage;
 using LakerProxy.Models;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
+using LakerProxy.ProxyApp.Security;
 
 namespace LakerProxy.ProxyApp.Yarp
 {
@@ -33,11 +34,13 @@ namespace LakerProxy.ProxyApp.Yarp
 
     private readonly RequestDelegate _next;
     private readonly AppServices _services;
+    private readonly AuthFailureTracker _authFailureTracker;
 
-    public WebsiteUploadMiddleware(RequestDelegate next, AppServices services)
+    public WebsiteUploadMiddleware(RequestDelegate next, AppServices services, AuthFailureTracker authFailureTracker)
     {
       _next = next;
       _services = services;
+      _authFailureTracker = authFailureTracker;
     }
 
     public async Task Invoke(HttpContext context)
@@ -65,8 +68,15 @@ namespace LakerProxy.ProxyApp.Yarp
       }
 
       var user = await _services.ApiUser().Login(authHeader.Substring(7));
-      if (user == null
-          || !user.Rights.HasFlag(ApiUserRights.UploadWebsiteData)
+      if (user == null)
+      {
+        // a supplied but unknown token counts towards the per-IP block threshold
+        _authFailureTracker.RegisterFailure(context.Connection.RemoteIpAddress);
+        await _next(context);
+        return;
+      }
+
+      if (!user.Rights.HasFlag(ApiUserRights.UploadWebsiteData)
           || user.Website != websiteContext.Website.Id)
       {
         await _next(context);
@@ -163,17 +173,38 @@ namespace LakerProxy.ProxyApp.Yarp
       await services.Website().Save(website, dbContext);
 
       if (!ShortGuid.IsEmpty(previousId) && previousId != data.Id)
-      {
-        var websites = await services.Website().GetAll();
-        if (!websites.Any(w => w.WebsiteData == previousId))
-        {
-          var previous = await services.WebsiteData().GetById(previousId);
-          if (previous != null)
-            await services.WebsiteData().Delete(previous, dbContext);
-        }
-      }
+        await DeleteWhenUnreferenced(services, previousId, dbContext);
 
       return data;
+    }
+
+    /// <summary>
+    /// Detaches the WebsiteData from the website and removes the document when
+    /// no other website references it.
+    /// </summary>
+    public static async Task Delete(AppServices services, ApiUser user, Website website)
+    {
+      var dataId = website.WebsiteData;
+      if (ShortGuid.IsEmpty(dataId))
+        return;
+
+      var dbContext = Context.Empty.Add(user);
+
+      website.WebsiteData = ShortGuid.Empty;
+      await services.Website().Save(website, dbContext);
+
+      await DeleteWhenUnreferenced(services, dataId, dbContext);
+    }
+
+    private static async Task DeleteWhenUnreferenced(AppServices services, ShortGuid dataId, Context dbContext)
+    {
+      var websites = await services.Website().GetAll();
+      if (websites.Any(w => w.WebsiteData == dataId))
+        return;
+
+      var data = await services.WebsiteData().GetById(dataId);
+      if (data != null)
+        await services.WebsiteData().Delete(data, dbContext);
     }
   }
 }

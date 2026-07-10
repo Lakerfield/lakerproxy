@@ -150,6 +150,29 @@ namespace LakerProxy.ProxyApp.Controllers
       }
     }
 
+    // DELETE: api/website/5/websitedata
+    [HttpDelete("{id:shortguid}/websitedata", Name = RouteNames.WebsiteDeleteWebsiteData)]
+    [ProducesResponseType(typeof(ApiEntity), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiError), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ApiError), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ApiError), StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> DeleteWebsiteData(string id)
+    {
+      var (success, user, website, error) = await GetWebsite(id, ApiUserRights.RoleFullAccess);
+      if (!success)
+        return error;
+      try
+      {
+        await Yarp.WebsiteDataUpload.Delete(Services, user, website);
+
+        return Ok(await website.ToWeb(Services));
+      }
+      catch (Exception e)
+      {
+        return e.ToActionResult();
+      }
+    }
+
     // PUT: api/website/5
     [HttpPut("{id}", Name = RouteNames.WebsitePutById)]
     [ProducesResponseType(typeof(ApiEntity), StatusCodes.Status200OK)]

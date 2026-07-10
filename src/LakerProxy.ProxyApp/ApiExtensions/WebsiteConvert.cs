@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Lakerfield;
 using Lakerfield.Runtime;
 using Entity = LakerProxy.Models.Website;
 using WebEntity = LakerProxy.WebApi.Models.Website;
@@ -31,6 +32,7 @@ namespace LakerProxy.ProxyApp.ApiExtensions
         Filter = (LakerProxy.WebApi.FilterKind)entity.Filter,
         FilterAcl = entity.FilterAcl,
         FilterDestination = entity.FilterDestination,
+        HasWebsiteData = !ShortGuid.IsEmpty(entity.WebsiteData),
         Comments = entity.Comments,
         Certificates = entity.Certificates.Select(ToWeb).ToArray()
       };

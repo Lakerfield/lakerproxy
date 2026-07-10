@@ -45,6 +45,7 @@ namespace LakerProxy.ProxyPlayground.ViewModels
         NotifyOfPropertyChange(() => CanDelete);
         NotifyOfPropertyChange(() => CanDownloadCertificate);
         NotifyOfPropertyChange(() => CanUploadZip);
+        NotifyOfPropertyChange(() => CanDeleteZip);
       }
     }
 
@@ -62,6 +63,7 @@ namespace LakerProxy.ProxyPlayground.ViewModels
         NotifyOfPropertyChange(() => CanDelete);
         NotifyOfPropertyChange(() => CanDownloadCertificate);
         NotifyOfPropertyChange(() => CanUploadZip);
+        NotifyOfPropertyChange(() => CanDeleteZip);
       }
     }
 
@@ -324,6 +326,35 @@ namespace LakerProxy.ProxyPlayground.ViewModels
     public bool CanUploadZip
     {
       get { return SelectedEntity != null; }
+    }
+
+
+
+    public async void DeleteZip()
+    {
+      var entity = SelectedEntity;
+      if (entity == null)
+        return;
+
+      if (MessageBox.Show($"Delete the uploaded website zip of {entity.Entity.Hostname}?", "Delete website zip", MessageBoxButton.YesNo) != MessageBoxResult.Yes)
+        return;
+
+      FormEnabled = false;
+      try
+      {
+        await Client.WebsiteDeleteWebsiteData(entity.Entity.Id);
+      }
+      catch (Exception exception)
+      {
+        App.ShowException("Delete website zip failed", exception);
+      }
+      FormEnabled = true;
+      Refresh();
+    }
+
+    public bool CanDeleteZip
+    {
+      get { return SelectedEntity != null && SelectedEntity.Entity.HasWebsiteData; }
     }
 
 

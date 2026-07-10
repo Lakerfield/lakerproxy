@@ -126,6 +126,13 @@ namespace LakerProxy.ProxyApp
         options.RuntimeCleanupInterval = TimeSpan.FromMinutes(1);
       });
 
+      services.AddAuthFailureTracking(options =>
+      {
+        options.MaxFailures = 3;
+        options.FailureWindow = TimeSpan.FromMinutes(5);
+        options.BlockDuration = TimeSpan.FromMinutes(65);
+      });
+
       services.AddHttpContextAccessor();
       services.AddSingleton<SuperAwesomeFileProvider>();
 

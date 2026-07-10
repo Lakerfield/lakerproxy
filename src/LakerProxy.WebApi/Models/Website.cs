@@ -42,6 +42,11 @@ namespace LakerProxy.WebApi.Models
     /// </summary>
     public string AcmeChallengeLabel { get; set; } = "";
 
+    /// <summary>
+    /// Read-only: true when an uploaded website zip (WebsiteData) is attached.
+    /// </summary>
+    public bool HasWebsiteData { get; set; }
+
     public string MaxRequestBodySize { get; set; } = "";
 
     public string Comments { get; set; } = "";
