@@ -159,7 +159,6 @@ namespace LakerProxy.ProxyApp.Yarp
   {
     private readonly AppServices _services;
 
-    private WebsiteWithCertificate? _defaultWebsite;
     private List<WebsiteWithCertificate> _allWebsites;
     private List<WebsiteWithCertificate> _wildcardWebsites;
     private ReaderWriterLockSlim _websitesLock;
@@ -187,7 +186,6 @@ namespace LakerProxy.ProxyApp.Yarp
 
         _wildcardWebsites.Clear();
         _wildcardWebsites.AddRange(_allWebsites.Where(w => w.Website.Scope is CertificateScope.Wildcard or CertificateScope.WildcardWithApex));
-        _defaultWebsite = _allWebsites.FirstOrDefault(w => w.Website.Fallback);
       }
       finally
       {
@@ -221,11 +219,12 @@ namespace LakerProxy.ProxyApp.Yarp
         if (direct != null)
           return direct;
 
+        //TODO: check of ook only 1 label and no more
         var wildcard = _wildcardWebsites.FirstOrDefault(w => hostname.EndsWith($".{w.Hostname}"));
         if (wildcard != null)
           return wildcard;
 
-        return _defaultWebsite;
+        return null;
       }
       finally
       {
@@ -351,8 +350,6 @@ namespace LakerProxy.ProxyApp.Yarp
       }
 
       Console.WriteLine($"ACCEPT:     {context?.ClientHelloInfo.ServerName} ${context?.Connection?.RemoteEndPoint}");
-
-      var certificateContext = websiteContext?.CertificateContext;
 
       // Custom implementation to support full cert chain (unedited by .net) ivm letsencrypt dual root certs for android
       // https://github.com/dotnet/aspnetcore/issues/21513#issuecomment-914370034

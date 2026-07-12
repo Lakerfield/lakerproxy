@@ -9,7 +9,6 @@ namespace LakerProxy.WebApi.Models
 
     public string Hostname { get; set; } = "";
 
-    public bool Fallback { get; set; }
     public string AcmeAccount { get; set; } = "";
     public CertificateScope Scope { get; set; }
     public WebsiteKind Kind { get; set; }

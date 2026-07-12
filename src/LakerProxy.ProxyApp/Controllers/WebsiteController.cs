@@ -86,7 +86,6 @@ namespace LakerProxy.ProxyApp.Controllers
         var website = new Entity()
         {
           Hostname = value.Hostname,
-          Fallback = value.Fallback,
           ForceRenew = value.ForceRenew,
           Scope = (CertificateScope)value.Scope,
           Kind = (WebsiteKind)value.Kind,
@@ -196,7 +195,6 @@ namespace LakerProxy.ProxyApp.Controllers
         var dbContext = Context.Empty;
 
         website.Hostname = value.Hostname;
-        website.Fallback = value.Fallback;
         website.ForceRenew = value.ForceRenew;
         website.Scope = (CertificateScope)value.Scope;
         website.Kind = (WebsiteKind) value.Kind;

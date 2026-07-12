@@ -35,7 +35,7 @@ namespace LakerProxy.Settings
       var dataConfiguration = configuration.GetSection("data");
 
       InitialAdminToken = (dataConfiguration["initial-admin-token"] ?? "").Trim();
-      InitialHostname = (dataConfiguration["initial-hostname"] ?? "").Trim();
+      InitialHostname = (dataConfiguration["initial-hostname"] ?? Environment.MachineName).Trim();
       InitialHostnameWithCertificate = dataConfiguration["initial-hostname-with-certificate"].ToBool(false);
 
       AcmeMail = (dataConfiguration["acme-mail"] ?? "").Trim();

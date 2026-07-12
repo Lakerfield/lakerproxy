@@ -32,15 +32,6 @@ namespace LakerProxy.Storage.Collections
               Unique = true,
             })).ConfigureAwait(false);
 
-      await Collection.Indexes.CreateOneAsync(new CreateIndexModel<Entity>(
-        IndexKeys
-          .Ascending(e => e.Fallback),
-            new CreateIndexOptions()
-            {
-              Unique = true,
-              Sparse = true,
-            })).ConfigureAwait(false);
-
       if (await Collection.CountDocumentsAsync(FilterDefinition<Entity>.Empty) == 0)
       {
         var entity = new Entity()
@@ -54,7 +45,6 @@ namespace LakerProxy.Storage.Collections
           {
             (await Services.Server().FindOrCreate(Environment.MachineName, ServerServices.Proxy | ServerServices.LetsEncrypt)).Id
           },
-          Fallback = true,
         };
         await Collection.SaveAsync(null, entity).ConfigureAwait(false);
       }
@@ -65,11 +55,6 @@ namespace LakerProxy.Storage.Collections
     {
       hostname = hostname.ToLower().Trim();
       return Collection.Find(Filter.Eq(e => e.Hostname, hostname)).FirstOrDefaultAsync();
-    }
-
-    public Task<Entity?> FindFallback()
-    {
-      return Collection.Find(Filter.Eq(e => e.Fallback, true)).FirstOrDefaultAsync();
     }
 
     public async Task Save(Entity entity, Context context, IAppTransaction? transaction = default)

@@ -29,7 +29,6 @@ namespace LakerProxy.Service
   public interface IWebsiteCollection : IBaseObservableCollection<Website>, ISaveToCollection<Website>, IDeleteFromCollection<Website>
   {
     Task<Website?> FindByHostname(string name);
-    Task<Website?> FindFallback();
   }
 
   public interface IAcmeAccountCollection : IBaseObservableCollection<AcmeAccount>, ISaveToCollection<AcmeAccount>

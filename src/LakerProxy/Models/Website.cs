@@ -10,7 +10,6 @@ namespace LakerProxy.Models
 
     public string Hostname { get; set; } = "";
 
-    public bool Fallback { get; set; }
     public ShortGuid AcmeAccount { get; set; }
     public CertificateScope Scope { get; set; }
     public AcmeChallengeType Challenges { get; set; } = AcmeChallengeType.Auto;
