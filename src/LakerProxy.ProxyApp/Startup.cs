@@ -11,6 +11,9 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 using Yarp.ReverseProxy.Configuration;
 using Lakerfield.Acme;
+using Lakerfield.Runtime;
+using Lakerfield.Settings;
+using LakerProxy.Settings;
 using LakerProxy.ProxyApp.Providers;
 using LakerProxy.ProxyApp.Routing.Constraints;
 using LakerProxy.ProxyApp.Security;
@@ -24,6 +27,8 @@ namespace LakerProxy.ProxyApp
     // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
     public void ConfigureServices(IServiceCollection services)
     {
+      var settings = Program.Runtime.Services.Settings().LakerProxy();
+
       //var routes = new[]
       //{
       //  new RouteConfig()
@@ -52,7 +57,6 @@ namespace LakerProxy.ProxyApp
       services.AddReverseProxy()
         //.LoadFromMemory(routes, clusters);
         .LoadFromMemory(Array.Empty<RouteConfig>(), Array.Empty<ClusterConfig>());
-
 
       services.AddRouting(options =>
       {
@@ -124,6 +128,10 @@ namespace LakerProxy.ProxyApp
       {
         options.BlockedStatusCode = StatusCodes.Status403Forbidden;
         options.RuntimeCleanupInterval = TimeSpan.FromMinutes(1);
+
+        options.BlocklistFeedUrls.AddRange(settings.BlocklistFeeds);
+        options.BlocklistFeedRefreshInterval = TimeSpan.FromMinutes(settings.BlocklistRefreshMinutes);
+        options.AllowList.AddRange(settings.BlocklistAllowList);
       });
 
       services.AddAuthFailureTracking(options =>
@@ -146,6 +154,16 @@ namespace LakerProxy.ProxyApp
         {
           options.ZoneName = Program.Server.AcmeChallengeZone;
         });
+        // log incoming dns-01 validation queries to the acme log
+        services.AddOptions<AcmeDnsServerOptions>()
+          .PostConfigure<AppServices>((options, appServices) =>
+          {
+            options.OnTxtQuery = (qname, remoteEndPoint, found) =>
+            {
+              var log = appServices.AcmeLog().New(qname, "V", $"dns-01 TXT query from {remoteEndPoint.Address} => {(found ? "ok" : "not found")}");
+              _ = appServices.AcmeLog().Insert(log);
+            };
+          });
       }
     }
 

@@ -28,6 +28,29 @@ namespace LakerProxy.ProxyPlayground.ViewModels
       }
     }
 
+    private ProxyServer _connectedServer;
+    public ProxyServer ConnectedServer
+    {
+      get { return _connectedServer; }
+      private set
+      {
+        _connectedServer = value;
+        NotifyOfPropertyChange();
+        NotifyOfPropertyChange(() => ConnectedServerName);
+        NotifyOfPropertyChange(() => CanOpenWebsites);
+        NotifyOfPropertyChange(() => CanOpenUsers);
+        NotifyOfPropertyChange(() => CanOpenServers);
+        NotifyOfPropertyChange(() => CanOpenAcmeAccounts);
+        NotifyOfPropertyChange(() => CanOpenLogs);
+        NotifyOfPropertyChange(() => CanOpenAcmeLogs);
+      }
+    }
+
+    public string ConnectedServerName
+    {
+      get { return ConnectedServer?.Omschrijving ?? "- not connected -"; }
+    }
+
     public AppViewModel()
     {
 
@@ -35,13 +58,11 @@ namespace LakerProxy.ProxyPlayground.ViewModels
 
 
 
-    public async void OpenWebsites()
+    public async void Connect()
     {
       var vm = new ProxyServersViewModel();
 
       dynamic windowSettings = new ExpandoObject();
-      //System.Windows.Window settings;
-      //windowSettings.WindowState = WindowState.Maximized;
       windowSettings.SizeToContent = SizeToContent.WidthAndHeight;
 
       var windowManager = IoC.Get<IWindowManager>();
@@ -55,136 +76,77 @@ namespace LakerProxy.ProxyPlayground.ViewModels
       var clonedProxyServer = proxyServer.Clone();
       clonedProxyServer.Enabled = false;
 
-      var websitesViewModel = new WebsitesViewModel(clonedProxyServer);
-      await ActivateItemAsync(websitesViewModel, CancellationToken.None);
-      SelectedTab = websitesViewModel;
+      ConnectedServer = clonedProxyServer;
+
+      OpenWebsites();
     }
 
 
+
+    private async Task OpenTab(TabBaseViewModel vm)
+    {
+      await ActivateItemAsync(vm, CancellationToken.None);
+      SelectedTab = vm;
+    }
+
+    public async void OpenWebsites()
+    {
+      await OpenTab(new WebsitesViewModel(ConnectedServer.Clone()));
+    }
+
+    public bool CanOpenWebsites
+    {
+      get { return ConnectedServer != null; }
+    }
 
     public async void OpenUsers()
     {
-      var vm = new ProxyServersViewModel();
-
-      dynamic windowSettings = new ExpandoObject();
-      //System.Windows.Window settings;
-      //windowSettings.WindowState = WindowState.Maximized;
-      windowSettings.SizeToContent = SizeToContent.WidthAndHeight;
-
-      var windowManager = IoC.Get<IWindowManager>();
-      if (await windowManager.ShowDialogAsync(vm, null, windowSettings) != true)
-        return;
-
-      var proxyServer = vm.SelectedProxyServer;
-      if (proxyServer == null)
-        return;
-
-      var clonedProxyServer = proxyServer.Clone();
-      clonedProxyServer.Enabled = false;
-
-      var usersViewModel = new ApiUsersViewModel(clonedProxyServer);
-      await ActivateItemAsync(usersViewModel, CancellationToken.None);
-      SelectedTab = usersViewModel;
+      await OpenTab(new ApiUsersViewModel(ConnectedServer.Clone()));
     }
 
-
-
-    public async void OpenLogs()
+    public bool CanOpenUsers
     {
-      var vm = new ProxyServersViewModel();
-
-      dynamic windowSettings = new ExpandoObject();
-      windowSettings.SizeToContent = SizeToContent.WidthAndHeight;
-
-      var windowManager = IoC.Get<IWindowManager>();
-      if (await windowManager.ShowDialogAsync(vm, null, windowSettings) != true)
-        return;
-
-      var proxyServer = vm.SelectedProxyServer;
-      if (proxyServer == null)
-        return;
-
-      var clonedProxyServer = proxyServer.Clone();
-      clonedProxyServer.Enabled = false;
-
-      var logsViewModel = new LogsViewModel(clonedProxyServer);
-      await ActivateItemAsync(logsViewModel, CancellationToken.None);
-      SelectedTab = logsViewModel;
+      get { return ConnectedServer != null; }
     }
-
-
 
     public async void OpenServers()
     {
-      var vm = new ProxyServersViewModel();
-
-      dynamic windowSettings = new ExpandoObject();
-      windowSettings.SizeToContent = SizeToContent.WidthAndHeight;
-
-      var windowManager = IoC.Get<IWindowManager>();
-      if (await windowManager.ShowDialogAsync(vm, null, windowSettings) != true)
-        return;
-
-      var proxyServer = vm.SelectedProxyServer;
-      if (proxyServer == null)
-        return;
-
-      var clonedProxyServer = proxyServer.Clone();
-      clonedProxyServer.Enabled = false;
-
-      var serversViewModel = new ServersViewModel(clonedProxyServer);
-      await ActivateItemAsync(serversViewModel, CancellationToken.None);
-      SelectedTab = serversViewModel;
+      await OpenTab(new ServersViewModel(ConnectedServer.Clone()));
     }
 
-
+    public bool CanOpenServers
+    {
+      get { return ConnectedServer != null; }
+    }
 
     public async void OpenAcmeAccounts()
     {
-      var vm = new ProxyServersViewModel();
-
-      dynamic windowSettings = new ExpandoObject();
-      windowSettings.SizeToContent = SizeToContent.WidthAndHeight;
-
-      var windowManager = IoC.Get<IWindowManager>();
-      if (await windowManager.ShowDialogAsync(vm, null, windowSettings) != true)
-        return;
-
-      var proxyServer = vm.SelectedProxyServer;
-      if (proxyServer == null)
-        return;
-
-      var clonedProxyServer = proxyServer.Clone();
-      clonedProxyServer.Enabled = false;
-
-      var acmeAccountsViewModel = new AcmeAccountsViewModel(clonedProxyServer);
-      await ActivateItemAsync(acmeAccountsViewModel, CancellationToken.None);
-      SelectedTab = acmeAccountsViewModel;
+      await OpenTab(new AcmeAccountsViewModel(ConnectedServer.Clone()));
     }
 
+    public bool CanOpenAcmeAccounts
+    {
+      get { return ConnectedServer != null; }
+    }
 
+    public async void OpenLogs()
+    {
+      await OpenTab(new LogsViewModel(ConnectedServer.Clone()));
+    }
+
+    public bool CanOpenLogs
+    {
+      get { return ConnectedServer != null; }
+    }
 
     public async void OpenAcmeLogs()
     {
-      var vm = new ProxyServersViewModel();
+      await OpenTab(new AcmeLogsViewModel(ConnectedServer.Clone()));
+    }
 
-      dynamic windowSettings = new ExpandoObject();
-      windowSettings.SizeToContent = SizeToContent.WidthAndHeight;
-
-      var windowManager = IoC.Get<IWindowManager>();
-      if (await windowManager.ShowDialogAsync(vm, null, windowSettings) != true)
-        return;
-
-      var proxyServer = vm.SelectedProxyServer;
-      if (proxyServer == null)
-        return;
-
-      var clonedProxyServer = proxyServer.Clone();
-      clonedProxyServer.Enabled = false;
-
-      var acmeLogsViewModel = new AcmeLogsViewModel(clonedProxyServer);
-      await ActivateItemAsync(acmeLogsViewModel, CancellationToken.None);
-      SelectedTab = acmeLogsViewModel;
+    public bool CanOpenAcmeLogs
+    {
+      get { return ConnectedServer != null; }
     }
 
 

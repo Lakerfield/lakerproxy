@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using Lakerfield.Runtime;
 using LakerProxy.Models;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -23,7 +24,22 @@ namespace LakerProxy.ProxyApp.Yarp
         subApp.Run(async context =>
         {
           var requestedToken = context.Request.Path.ToString().Replace("/.well-known/acme-challenge/", "");
-          var challenge = context.GetWebsite()?.AcmeValidation?.Validate(requestedToken);
+          var website = context.GetWebsite();
+          var challenge = website?.AcmeValidation?.Validate(requestedToken);
+
+          // log incoming http-01 validation requests to the acme log, but only
+          // while a validation is pending to keep scanner noise out
+          if (website?.AcmeValidation != null)
+          {
+            var services = context.RequestServices.GetService<AppServices>();
+            if (services != null)
+            {
+              var ip = context.Connection.RemoteIpAddress?.ToString().Replace("::ffff:", "");
+              var log = services.AcmeLog().New(context.Request.Host.Host, "V", $"http-01 validation request for token '{requestedToken}' from {ip} => {(string.IsNullOrWhiteSpace(challenge) ? "unknown token" : "ok")}");
+              await services.AcmeLog().Insert(log);
+            }
+          }
+
           if (!string.IsNullOrWhiteSpace(challenge))
           {
             //context.Response.ContentType = "text/plain";

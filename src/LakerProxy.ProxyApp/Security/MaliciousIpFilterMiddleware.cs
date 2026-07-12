@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
@@ -43,4 +44,19 @@ public sealed class MaliciousIpFilterOptions
 
   public TimeSpan RuntimeCleanupInterval { get; set; } =
     TimeSpan.FromMinutes(1);
+
+  /// <summary>
+  /// Urls of external ip blocklist feeds (dshield block.txt format or plain
+  /// ip/cidr lines). Empty disables the feed refresh.
+  /// </summary>
+  public List<string> BlocklistFeedUrls { get; } = new();
+
+  /// <summary>
+  /// ip/cidr entries that are never blocked, regardless of feed content or
+  /// runtime (auth failure) blocks. Invalid entries fail at startup.
+  /// </summary>
+  public List<string> AllowList { get; } = new();
+
+  public TimeSpan BlocklistFeedRefreshInterval { get; set; } =
+    TimeSpan.FromHours(1);
 }

@@ -17,27 +17,33 @@
 
     <StackPanel Orientation="Horizontal">
 
-      <Button x:Name="OpenWebsites" ToolTip="Open websites from proxy server">
+      <Button x:Name="Connect" ToolTip="Connect to proxy server">
+        <Image Source="/Images/plug_add32.png" Height="32" />
+      </Button>
+
+      <TextBlock Text="{Binding ConnectedServerName}" VerticalAlignment="Center" FontWeight="Bold" Margin="4,0,8,0" />
+
+      <Button x:Name="OpenWebsites" ToolTip="Open websites from connected proxy server" Margin="16,0,0,0">
         <Image Source="/Images/server_edit.png" Height="32" />
       </Button>
 
-      <Button x:Name="OpenUsers" ToolTip="Open users from proxy server">
+      <Button x:Name="OpenUsers" ToolTip="Open users from connected proxy server">
         <Image Source="/Images/users3_edit.png" Height="32" />
       </Button>
 
-      <Button x:Name="OpenServers" ToolTip="Open servers from proxy server">
+      <Button x:Name="OpenServers" ToolTip="Open servers from connected proxy server">
         <Image Source="/Images/server_into.png" Height="32" />
       </Button>
 
-      <Button x:Name="OpenAcmeAccounts" ToolTip="Open acme accounts from proxy server">
+      <Button x:Name="OpenAcmeAccounts" ToolTip="Open acme accounts from connected proxy server">
         <Image Source="/Images/preferences32.png" Height="32" />
       </Button>
 
-      <Button x:Name="OpenLogs" ToolTip="Open live logs from proxy server">
+      <Button x:Name="OpenLogs" ToolTip="Open live logs from connected proxy server">
         <Image Source="/Images/document.png" Height="32" />
       </Button>
 
-      <Button x:Name="OpenAcmeLogs" ToolTip="Open live acme logs from proxy server">
+      <Button x:Name="OpenAcmeLogs" ToolTip="Open live acme logs from connected proxy server">
         <Image Source="/Images/cloud_computing_download.png" Height="32" />
       </Button>
 

@@ -10,6 +10,7 @@ public sealed class MaliciousIpBlocklist
   private readonly TimeProvider _timeProvider;
 
   private IpBlocklistSnapshot _feedSnapshot = IpBlocklistSnapshot.Empty;
+  private IpBlocklistSnapshot _allowSnapshot = IpBlocklistSnapshot.Empty;
 
   private readonly RuntimeBlockIndex<uint> _runtimeIpv4 = new();
   private readonly RuntimeBlockIndex<ulong> _runtimeIpv6Prefix64 = new();
@@ -30,6 +31,42 @@ public sealed class MaliciousIpBlocklist
   }
 
   /// <summary>
+  /// Atomisch vervangen van de allow list. Adressen in de allow list worden
+  /// nooit als geblokkeerd gerapporteerd en runtime blocks erop zijn een no-op,
+  /// ongeacht feed of runtime blokkades.
+  /// </summary>
+  public void ReplaceAllowSnapshot(IpBlocklistSnapshot snapshot)
+  {
+    ArgumentNullException.ThrowIfNull(snapshot);
+    Volatile.Write(ref _allowSnapshot, snapshot);
+  }
+
+  /// <summary>
+  /// Controleert of een IP in de allow list staat.
+  /// IPv6 wordt uitsluitend op de eerste 64 bits beoordeeld.
+  /// </summary>
+  public bool IsAllowed(IPAddress? address)
+  {
+    if (address is null)
+      return false;
+
+    address = IpAddressNumeric.Normalize(address);
+
+    var snapshot = Volatile.Read(ref _allowSnapshot);
+
+    return address.AddressFamily switch
+    {
+      AddressFamily.InterNetwork =>
+          snapshot.ContainsIpv4(IpAddressNumeric.ToUInt32(address)),
+
+      AddressFamily.InterNetworkV6 =>
+          snapshot.ContainsIpv6Prefix64(IpAddressNumeric.ToIpv6Prefix64(address)),
+
+      _ => false
+    };
+  }
+
+  /// <summary>
   /// Controleert of een IP geblokkeerd is.
   /// IPv6 wordt uitsluitend op de eerste 64 bits beoordeeld.
   /// </summary>
@@ -39,6 +76,9 @@ public sealed class MaliciousIpBlocklist
       return false;
 
     address = IpAddressNumeric.Normalize(address);
+
+    if (IsAllowed(address))
+      return false;
 
     var nowUtcTicks = _timeProvider.GetUtcNow().UtcTicks;
     var snapshot = Volatile.Read(ref _feedSnapshot);
@@ -70,6 +110,9 @@ public sealed class MaliciousIpBlocklist
           "Block duration must be greater than zero.");
 
     address = IpAddressNumeric.Normalize(address);
+
+    if (IsAllowed(address))
+      return;
 
     var nowUtcTicks = _timeProvider.GetUtcNow().UtcTicks;
     var expiresAtUtcTicks = checked(nowUtcTicks + duration.Ticks);
@@ -104,6 +147,9 @@ public sealed class MaliciousIpBlocklist
     ArgumentNullException.ThrowIfNull(address);
 
     address = IpAddressNumeric.Normalize(address);
+
+    if (IsAllowed(address))
+      return;
 
     switch (address.AddressFamily)
     {
