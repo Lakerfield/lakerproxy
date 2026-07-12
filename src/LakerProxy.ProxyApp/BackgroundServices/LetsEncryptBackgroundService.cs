@@ -4,8 +4,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Lakerfield.Acme;
 using Lakerfield.Runtime;
+using Lakerfield.Settings;
 using LakerProxy.Models;
 using LakerProxy.ProxyApp.Yarp;
+using LakerProxy.Settings;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
@@ -41,9 +43,6 @@ namespace LakerProxy.ProxyApp.BackgroundServices
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-      //if (!_settings.Data.LetsEncrypt)
-      //  return;
-
       _logger.LogDebug($"{nameof(LetsEncryptBackgroundService)} is starting.");
 
       stoppingToken.Register(() =>
@@ -68,9 +67,6 @@ namespace LakerProxy.ProxyApp.BackgroundServices
 
         foreach (var website in websites)
         {
-          //if (website.Id != "JmU15yYDJEOojPoptRAUzQ")
-          //  continue;
-
           var activeCertificate = website.GetActiveCertificate();
           if (!MustBeUpdated(website, activeCertificate, isFirstRun))
             continue;

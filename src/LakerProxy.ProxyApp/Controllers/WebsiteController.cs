@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Asp.Versioning;
 using Lakerfield;
 using Lakerfield.Runtime;
 using LakerProxy.ProxyApp.ApiExtensions;
@@ -16,8 +15,10 @@ using ApiError = LakerProxy.WebApi.Models.ApiError;
 namespace LakerProxy.ProxyApp.Controllers
 {
   //[Authorize]
+#if DEBUG
+  [Asp.Versioning.ApiVersion("1")]
+#endif
   [ApiController]
-  [ApiVersion("1")]
   [Route("api/v1/website")]
   public class WebsiteController : AWebApiControllerBase
   {

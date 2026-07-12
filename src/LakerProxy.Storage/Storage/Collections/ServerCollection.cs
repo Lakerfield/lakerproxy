@@ -45,12 +45,12 @@ namespace LakerProxy.Storage.Collections
         result = new Entity()
         {
           Name = name,
+          Hostname = name,
           AcmeAccount = (await Services.AcmeAccount().FindDefault())?.Id ?? ShortGuid.Empty,
+          AcmeChallengeZone = $"acme.{name}",
           Comments = "auto created on launch",
           Services = services,
           CreatedAt = DateTime.Now,
-          Hostname = name,
-          AcmeChallengeZone = "acme.localhost",
         };
         await Save(result, Context.Empty);
       }

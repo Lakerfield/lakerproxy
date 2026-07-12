@@ -1,7 +1,4 @@
 <Solution>
-  <Folder Name="/0 - Acme/">
-    <Project Path="E:\git\Lakerfield.Acme\src\Lakerfield.Acme\Lakerfield.Acme.csproj" />
-  </Folder>
   <Folder Name="/0 - Api/">
     <Project Path="src/LakerProxy.WebApi/LakerProxy.WebApi.csproj" />
   </Folder>

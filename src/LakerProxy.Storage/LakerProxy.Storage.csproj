@@ -12,11 +12,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Lakerfield.Acme" Version="1.0.2" />
     <PackageReference Include="Lakerfield.Storage" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="E:\git\Lakerfield.Acme\src\Lakerfield.Acme\Lakerfield.Acme.csproj" />
     <ProjectReference Include="..\LakerProxy\LakerProxy.csproj" />
   </ItemGroup>
 

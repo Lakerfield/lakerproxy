@@ -8,7 +8,6 @@ using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.OpenApi.Models;
 using Yarp.ReverseProxy.Configuration;
 using Lakerfield.Acme;
 using Lakerfield.Runtime;
@@ -81,11 +80,11 @@ namespace LakerProxy.ProxyApp
       services.AddSwaggerGen(c =>
       {
         // Your custom configuration
-        c.SwaggerDoc("v1", new OpenApiInfo
+        c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
         {
           Title = "LakerProxy API",
           Version = "v1",
-          Contact = new OpenApiContact()
+          Contact = new Microsoft.OpenApi.Models.OpenApiContact()
           {
             Name = "Michael Lakerveld",
             Url = new Uri("https://lakerfield.net/"),
@@ -96,23 +95,23 @@ namespace LakerProxy.ProxyApp
         //c.DescribeAllEnumsAsStrings();
 
         // if you're using the SecurityRequirementsOperationFilter, you also need to tell Swashbuckle you're using OAuth2
-        c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+        c.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
         {
           Description = "Standard Authorization header using the Bearer scheme. Example: \"Bearer {token}\"",
-          In = ParameterLocation.Header,
+          In = Microsoft.OpenApi.Models.ParameterLocation.Header,
           Name = "Authorization",
-          Type = SecuritySchemeType.ApiKey
+          Type = Microsoft.OpenApi.Models.SecuritySchemeType.ApiKey
         });
 
-        c.AddSecurityRequirement(new OpenApiSecurityRequirement()
+        c.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement()
         {
           {
-            new OpenApiSecurityScheme
+            new Microsoft.OpenApi.Models.OpenApiSecurityScheme
             {
-              Reference = new OpenApiReference
+              Reference = new Microsoft.OpenApi.Models.OpenApiReference
               {
                 Id = "Bearer", //The name of the previously defined security scheme.
-                Type = ReferenceType.SecurityScheme
+                Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme
               }
             },
             new List<string>()

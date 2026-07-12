@@ -12,20 +12,16 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Asp.Versioning.Mvc" Version="8.1.1" />
+    <PackageReference Include="Asp.Versioning.Mvc" Version="8.1.1" Condition="'$(Configuration)' == 'Debug'" />
     <PackageReference Include="IPNetwork2" Version="4.0.2">
       <Aliases>IPNetwork2</Aliases>
     </PackageReference>
-    <!--<PackageReference Include="Lakerfield.Acme" Version="1.0.0-rc.1" />-->
-    <PackageReference Include="Microsoft.AspNetCore.SignalR.Protocols.NewtonsoftJson" Version="8.0.6" />
     <PackageReference Include="Microsoft.Extensions.Hosting.Systemd" Version="8.0.1" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
-    <PackageReference Include="System.Reactive" Version="6.1.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" Condition="'$(Configuration)' == 'Debug'" />
     <PackageReference Include="Yarp.ReverseProxy" Version="2.3.0" />
   </ItemGroup>
   
   <ItemGroup>
-    <ProjectReference Include="E:\git\Lakerfield.Acme\src\Lakerfield.Acme\Lakerfield.Acme.csproj" />
     <ProjectReference Include="..\LakerProxy.Runtime\LakerProxy.Runtime.csproj" />
     <ProjectReference Include="..\LakerProxy.WebApi\LakerProxy.WebApi.csproj" />
   </ItemGroup>

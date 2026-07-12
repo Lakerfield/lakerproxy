@@ -1,3 +1,4 @@
+#if DEBUG
 using LakerProxy.ProxyApp.Controllers;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
@@ -13,3 +14,4 @@ namespace LakerProxy.ProxyApp
     }
   }
 }
+#endif
