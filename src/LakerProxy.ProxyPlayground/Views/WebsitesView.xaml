@@ -45,6 +45,10 @@
         <Image Source="/Images/garbage_empty32.png" Height="32" />
       </Button>
 
+      <Button x:Name="CheckDns" ToolTip="Check DNS of all hostnames (no cache); with multiple rows selected only those" Margin="8,0,0,0">
+        <Image Source="/Images/server_into.png" Height="32" />
+      </Button>
+
       <ToggleButton IsChecked="{Binding ShowAcmeLog}" ToolTip="Show live acme log" Margin="8,0,0,0">
         <Image Source="/Images/document.png" Height="32" />
       </ToggleButton>
@@ -80,7 +84,6 @@
         </DataGridTemplateColumn>
         <DataGridComboBoxColumn IsReadOnly="True" Header="Kind" SelectedValueBinding="{Binding Entity.Kind, Converter={StaticResource EnumListWebsiteKind}}" ItemsSource="{StaticResource EnumListWebsiteKind}" />
         <DataGridTextColumn IsReadOnly="True" Header="Destination" Binding="{Binding Entity.Destination}"/>
-        <DataGridTextColumn IsReadOnly="True" Header="Servers" Binding="{Binding Entity.Servers, Converter={StaticResource StringsToCommaStringConverter}}" />
         <DataGridComboBoxColumn IsReadOnly="True" Header="Certificate scope" SelectedValueBinding="{Binding Entity.Scope, Converter={StaticResource EnumListCertificateScope}}" ItemsSource="{StaticResource EnumListCertificateScope}" />
         <DataGridTextColumn IsReadOnly="True" Header="CertificateInfo" Binding="{Binding CertificateInfo}">
           <DataGridTextColumn.CellStyle>
@@ -89,8 +92,25 @@
             </Style>
           </DataGridTextColumn.CellStyle>
         </DataGridTextColumn>
+        <DataGridTextColumn IsReadOnly="True" Header="Servers" Binding="{Binding Entity.Servers, Converter={StaticResource StringsToCommaStringConverter}}" />
         <DataGridTextColumn IsReadOnly="True" Header="Acme" Binding="{Binding Entity.AcmeAccount}"/>
         <DataGridComboBoxColumn IsReadOnly="True" Header="Protocol" SelectedValueBinding="{Binding Entity.DestinationProtocol, Converter={StaticResource EnumListDestinationProtocol}}" ItemsSource="{StaticResource EnumListDestinationProtocol}" />
+        <DataGridTextColumn IsReadOnly="True" Header="DNS v4" Binding="{Binding DnsV4Info}" SortMemberPath="DnsV4Info">
+          <DataGridTextColumn.CellStyle>
+            <Style TargetType="DataGridCell">
+              <Setter Property="Foreground" Value="{Binding DnsV4, Converter={StaticResource DnsCheckToTextColorConverter}}"/>
+              <Setter Property="ToolTip" Value="{Binding DnsV4ToolTip}"/>
+            </Style>
+          </DataGridTextColumn.CellStyle>
+        </DataGridTextColumn>
+        <DataGridTextColumn IsReadOnly="True" Header="DNS v6" Binding="{Binding DnsV6Info}" SortMemberPath="DnsV6Info">
+          <DataGridTextColumn.CellStyle>
+            <Style TargetType="DataGridCell">
+              <Setter Property="Foreground" Value="{Binding DnsV6, Converter={StaticResource DnsCheckToTextColorConverter}}"/>
+              <Setter Property="ToolTip" Value="{Binding DnsV6ToolTip}"/>
+            </Style>
+          </DataGridTextColumn.CellStyle>
+        </DataGridTextColumn>
         <DataGridTextColumn IsReadOnly="True" Header="Comments" Binding="{Binding Entity.Comments, Converter={StaticResource StringToCommaStringConverter}}"/>
         <DataGridComboBoxColumn IsReadOnly="True" Header="Filter" SelectedValueBinding="{Binding Entity.Filter, Converter={StaticResource EnumListFilterKind}}" ItemsSource="{StaticResource EnumListFilterKind}" />
         <DataGridTextColumn IsReadOnly="True" Header="FilterAcl" Binding="{Binding Entity.FilterAcl, Converter={StaticResource StringsToCommaStringConverter}}" />

@@ -8,6 +8,7 @@
     <PackageReference Update="Microsoft.Extensions.Configuration.Ini"                  Version="10.0.5" />
 
     <PackageReference Update="Caliburn.Micro" Version="4.0.212" />
+    <PackageReference Update="DnsClient" Version="1.8.0" />
     <PackageReference Update="Newtonsoft.Json" Version="13.0.3" />
 
     <PackageReference Update="Lakerfield.Core"     Version="1.1.0" />

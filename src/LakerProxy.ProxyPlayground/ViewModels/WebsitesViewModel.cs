@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using System.Net;
+using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -10,7 +12,7 @@ using Caliburn.Micro;
 using LakerProxy.WebApi;
 using LakerProxy.ProxyPlayground.Settings;
 using LakerProxy.ProxyPlayground.Tools;
-using LakerProxy.WebApi;
+using LakerProxy.ProxyPlayground.Tools.DnsCheck;
 using Microsoft.Win32;
 using Entity = LakerProxy.WebApi.Models.Website;
 using EntityVm = LakerProxy.ProxyPlayground.ViewModels.WebsiteViewModel;
@@ -359,6 +361,151 @@ namespace LakerProxy.ProxyPlayground.ViewModels
 
 
 
+    private CancellationTokenSource _dnsCts;
+
+    private bool _isCheckingDns;
+    public bool IsCheckingDns
+    {
+      get { return _isCheckingDns; }
+      private set
+      {
+        if (Equals(value, _isCheckingDns)) return;
+        _isCheckingDns = value;
+        NotifyOfPropertyChange();
+        NotifyOfPropertyChange(() => CanCheckDns);
+      }
+    }
+
+    /// <summary>
+    /// Looks up the hostnames of all (or the selected) websites without using the
+    /// local dns cache and compares the addresses with those of the linked proxy servers.
+    /// The form stays enabled; rows fill in as results come in.
+    /// </summary>
+    public async void CheckDns()
+    {
+      _dnsCts?.Cancel();
+      var cts = _dnsCts = new CancellationTokenSource();
+      var ct = cts.Token;
+      IsCheckingDns = true;
+      try
+      {
+        var targets = SelectedEntities.Count > 1 ? SelectedEntities.ToList() : Entities.ToList();
+
+        var servers = await Client.ServerGet();
+        var checker = new DnsChecker();
+
+        // expected set: addresses of every server hostname, keyed by server name (Website.Servers holds names)
+        var serverAddresses = new Dictionary<string, IReadOnlyList<IPAddress>>(StringComparer.OrdinalIgnoreCase);
+        await Task.WhenAll(servers.Select(async server =>
+        {
+          var addresses = await checker.ResolveServerAsync(server.Hostname, ct);
+          lock (serverAddresses)
+            serverAddresses[server.Name] = addresses;
+        }));
+        var proxyServerNames = servers
+          .Where(s => s.Services.HasFlag(ServerServices.Proxy))
+          .Select(s => s.Name)
+          .ToList();
+
+        var probeLabel = DnsChecker.NewProbeLabel();
+        var pending = new List<EntityVm>();
+        foreach (var vm in targets)
+        {
+          var skipReason = SkipReason(vm.Entity);
+          if (skipReason != null)
+          {
+            vm.DnsV4 = DnsCheckResult.Skipped(AddressFamily.InterNetwork, skipReason);
+            vm.DnsV6 = DnsCheckResult.Skipped(AddressFamily.InterNetworkV6, skipReason);
+            continue;
+          }
+          vm.DnsV4 = DnsCheckResult.Checking(AddressFamily.InterNetwork);
+          vm.DnsV6 = DnsCheckResult.Checking(AddressFamily.InterNetworkV6);
+          pending.Add(vm);
+        }
+
+        using var semaphore = new SemaphoreSlim(8);
+        await Task.WhenAll(pending.Select(async vm =>
+        {
+          await semaphore.WaitAsync(ct);
+          try
+          {
+            var names = DnsChecker.NamesToCheck(vm.Entity.Hostname, vm.Entity.Scope, probeLabel);
+            var serverNames = vm.Entity.Servers.Count > 0 ? vm.Entity.Servers : proxyServerNames;
+            var expected = serverNames
+              .SelectMany(name => serverAddresses.TryGetValue(name, out var addresses)
+                ? addresses.Select(ip => (Server: name, Ip: ip))
+                : Enumerable.Empty<(string Server, IPAddress Ip)>())
+              .ToList();
+
+            var v4 = checker.CheckAsync(names, vm.Entity.Scope, AddressFamily.InterNetwork, expected, ct);
+            var v6 = checker.CheckAsync(names, vm.Entity.Scope, AddressFamily.InterNetworkV6, expected, ct);
+            await Task.WhenAll(v4, v6);
+
+            OnUIThread(() =>
+            {
+              vm.DnsV4 = v4.Result;
+              vm.DnsV6 = v6.Result;
+            });
+          }
+          catch (OperationCanceledException)
+          {
+            OnUIThread(() =>
+            {
+              vm.DnsV4 = null;
+              vm.DnsV6 = null;
+            });
+          }
+          catch (Exception exception)
+          {
+            OnUIThread(() =>
+            {
+              vm.DnsV4 = DnsCheckResult.Failed(AddressFamily.InterNetwork, exception.Message);
+              vm.DnsV6 = DnsCheckResult.Failed(AddressFamily.InterNetworkV6, exception.Message);
+            });
+          }
+          finally
+          {
+            semaphore.Release();
+          }
+        }));
+      }
+      catch (OperationCanceledException)
+      {
+        // cancelled by a new run or by closing the tab
+      }
+      catch (Exception exception)
+      {
+        App.ShowException("DNS check failed", exception);
+      }
+      finally
+      {
+        if (ReferenceEquals(_dnsCts, cts))
+        {
+          _dnsCts = null;
+          IsCheckingDns = false;
+        }
+        cts.Dispose();
+      }
+    }
+
+    public bool CanCheckDns
+    {
+      get { return !IsCheckingDns; }
+    }
+
+    private static string SkipReason(Entity entity)
+    {
+      if (entity.Kind == WebsiteKind.Offline)
+        return "website is offline";
+      if (string.Equals(DnsChecker.Normalize(entity.Hostname), "localhost", StringComparison.OrdinalIgnoreCase))
+        return "localhost";
+      if (string.IsNullOrWhiteSpace(entity.Hostname))
+        return "no hostname";
+      return null;
+    }
+
+
+
     private AcmeLogsViewModel _acmeLogs;
     public AcmeLogsViewModel AcmeLogs
     {
@@ -398,6 +545,8 @@ namespace LakerProxy.ProxyPlayground.ViewModels
 
     protected override async Task OnDeactivateAsync(bool close, CancellationToken cancellationToken)
     {
+      if (close)
+        _dnsCts?.Cancel();
       if (close && AcmeLogs != null)
         await ((IDeactivate)AcmeLogs).DeactivateAsync(true, cancellationToken);
       await base.OnDeactivateAsync(close, cancellationToken);

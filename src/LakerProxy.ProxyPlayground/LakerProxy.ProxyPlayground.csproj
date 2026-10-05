@@ -20,6 +20,7 @@
 
   <ItemGroup>
     <PackageReference Include="Caliburn.Micro" />
+    <PackageReference Include="DnsClient" />
     <PackageReference Include="Newtonsoft.Json" />
     <PackageReference Include="System.Reactive" />
   </ItemGroup>

@@ -67,6 +67,14 @@ namespace LakerProxy.ProxyPlayground.Views
           listCollectionView.CustomSort = new WebsiteCertificateExpireDateComparer(sortDirection);
           break;
 
+        case "DnsV4Info":
+          listCollectionView.CustomSort = new WebsiteDnsComparer(vm => vm.DnsV4, sortDirection);
+          break;
+
+        case "DnsV6Info":
+          listCollectionView.CustomSort = new WebsiteDnsComparer(vm => vm.DnsV6, sortDirection);
+          break;
+
         default:
           return;
       }

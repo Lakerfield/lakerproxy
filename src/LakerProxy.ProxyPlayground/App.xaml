@@ -13,6 +13,7 @@
           <converters:BooleanToRedBackgroundConverter x:Key="BooleanToRedBackgroundConverter" />
           <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
           <converters:CertificateToTextColorConverter x:Key="CertificateToTextColorConverter" />
+          <converters:DnsCheckToTextColorConverter x:Key="DnsCheckToTextColorConverter" />
           <converters:DomainExtensionFillConverter x:Key="DomainExtensionFillConverter" />
           <converters:ListOfStringsToTextConverter x:Key="ListOfStringsToTextConverter" />
           <converters:NotEqualToVisibilityConverter x:Key="NotEqualToVisibilityConverter" />

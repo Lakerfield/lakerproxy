@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using LakerProxy.WebApi;
+using LakerProxy.ProxyPlayground.Tools.DnsCheck;
 using LakerProxy.ProxyPlayground.ViewModels;
 using LakerProxy.WebApi.Models;
 
@@ -91,6 +92,42 @@ public class WebsiteHostnameComparer : IComparer<WebsiteViewModel>, IComparer
     return Compare(x as WebsiteViewModel, y as WebsiteViewModel);
   }
 
+}
+
+/// <summary>
+/// Sorts on DNS check status (problems first), then on hostname
+/// </summary>
+public class WebsiteDnsComparer : IComparer<WebsiteViewModel>, IComparer
+{
+  private readonly Func<WebsiteViewModel, DnsCheckResult> _selector;
+  public ListSortDirection SortDirection { get; set; }
+
+  public WebsiteDnsComparer(Func<WebsiteViewModel, DnsCheckResult> selector, ListSortDirection sortDirection)
+  {
+    _selector = selector;
+    SortDirection = sortDirection;
+  }
+
+  public int Compare(WebsiteViewModel x, WebsiteViewModel y)
+  {
+    var rankX = DnsCheckResult.Rank(x == null ? DnsCheckStatus.NotChecked : _selector(x)?.Status ?? DnsCheckStatus.NotChecked);
+    var rankY = DnsCheckResult.Rank(y == null ? DnsCheckStatus.NotChecked : _selector(y)?.Status ?? DnsCheckStatus.NotChecked);
+
+    var result = SortDirection == ListSortDirection.Ascending
+      ? rankX.CompareTo(rankY)
+      : rankY.CompareTo(rankX);
+    if (result != 0)
+      return result;
+
+    return Comparer.Default.Compare(
+      ComparerHelpers.DomainNameReorder(x?.Entity.Hostname),
+      ComparerHelpers.DomainNameReorder(y?.Entity.Hostname));
+  }
+
+  public int Compare(object x, object y)
+  {
+    return Compare(x as WebsiteViewModel, y as WebsiteViewModel);
+  }
 }
 
 public class WebsiteCertificateExpireDateComparer : IComparer<WebsiteViewModel>, IComparer

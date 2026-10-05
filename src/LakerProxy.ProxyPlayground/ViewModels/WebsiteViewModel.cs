@@ -1,5 +1,6 @@
 using System.Linq;
 using Caliburn.Micro;
+using LakerProxy.ProxyPlayground.Tools.DnsCheck;
 using LakerProxy.WebApi;
 using Entity = LakerProxy.WebApi.Models.Website;
 
@@ -34,6 +35,40 @@ namespace LakerProxy.ProxyPlayground.ViewModels
       return new WebsiteViewModel(Entity.Clone());
 
     }
+
+
+    // DNS check results per address family; filled by WebsitesViewModel.CheckDns,
+    // null until a check has run
+    private DnsCheckResult _dnsV4;
+    public DnsCheckResult DnsV4
+    {
+      get { return _dnsV4; }
+      set
+      {
+        _dnsV4 = value;
+        NotifyOfPropertyChange();
+        NotifyOfPropertyChange(() => DnsV4Info);
+        NotifyOfPropertyChange(() => DnsV4ToolTip);
+      }
+    }
+
+    private DnsCheckResult _dnsV6;
+    public DnsCheckResult DnsV6
+    {
+      get { return _dnsV6; }
+      set
+      {
+        _dnsV6 = value;
+        NotifyOfPropertyChange();
+        NotifyOfPropertyChange(() => DnsV6Info);
+        NotifyOfPropertyChange(() => DnsV6ToolTip);
+      }
+    }
+
+    public string DnsV4Info => DnsV4?.ShortText ?? "";
+    public string DnsV4ToolTip => DnsV4?.ToolTipText;
+    public string DnsV6Info => DnsV6?.ShortText ?? "";
+    public string DnsV6ToolTip => DnsV6?.ToolTipText;
 
     public string CertificateInfo
     {
