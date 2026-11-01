@@ -99,6 +99,7 @@ namespace LakerProxy.ProxyApp.Controllers
           MaxRequestBodySize = WebsiteConvert.ConvertToMaxRequestBodySize(value.MaxRequestBodySize),
           MaxWebsiteDataSize = WebsiteConvert.ConvertToMaxWebsiteDataSize(value.MaxWebsiteDataSize),
           Comments = value.Comments,
+          Tags = ApiEntity.NormalizeTags(value.Tags),
           //CreatedBy =
           //CreatedAt = 
         };
@@ -209,6 +210,7 @@ namespace LakerProxy.ProxyApp.Controllers
         website.MaxRequestBodySize = WebsiteConvert.ConvertToMaxRequestBodySize(value.MaxRequestBodySize);
         website.MaxWebsiteDataSize = WebsiteConvert.ConvertToMaxWebsiteDataSize(value.MaxWebsiteDataSize);
         website.Comments = value.Comments;
+        website.Tags = ApiEntity.NormalizeTags(value.Tags);
 
         await Services.Website().Save(website, dbContext);
 

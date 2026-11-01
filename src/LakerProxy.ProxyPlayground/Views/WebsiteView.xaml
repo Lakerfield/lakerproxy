@@ -81,6 +81,9 @@
         <TextBlock Text="Max website data size" Margin="0,8,0,0" />
         <TextBox Text="{Binding Entity.MaxWebsiteDataSize}" ToolTip="Maximum uncompressed size of the uploaded website zip. Leave empty or type 'default' for the default 20MB limit. Use values like '5MB' or '50MB', or 'max' (256MB)."></TextBox>
 
+        <TextBlock Text="Tags (words separated by space)" Margin="0,8,0,0" />
+        <TextBox Text="{Binding TagsText}" ToolTip="Free-form words to group and filter websites in the manager, e.g. 'customer-x production'"></TextBox>
+
         <TextBlock Text="Comments" Margin="0,8,0,0" />
         <TextBox Text="{Binding Entity.Comments}" AcceptsReturn="True"></TextBox>
 

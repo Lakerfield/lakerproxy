@@ -53,6 +53,20 @@
         <Image Source="/Images/document.png" Height="32" />
       </ToggleButton>
 
+      <TextBlock Text="Hostname" VerticalAlignment="Center" Margin="16,0,4,0" />
+      <TextBox Text="{Binding HostnameFilter, UpdateSourceTrigger=PropertyChanged}"
+               Width="180" VerticalAlignment="Center" VerticalContentAlignment="Center"
+               ToolTip="Show only websites whose hostname contains this text" />
+
+      <TextBlock Text="Tags" VerticalAlignment="Center" Margin="8,0,4,0" />
+      <TextBox Text="{Binding TagFilter, UpdateSourceTrigger=PropertyChanged}"
+               Width="140" VerticalAlignment="Center" VerticalContentAlignment="Center"
+               ToolTip="Show only websites that have all these tags (space separated, prefix match)" />
+
+      <Button x:Name="ClearFilters" Content="x" ToolTip="Clear filters" Width="24" Margin="4,0,0,0" />
+
+      <TextBlock Text="{Binding FilterSummary}" VerticalAlignment="Center" Margin="8,0,0,0" Foreground="DimGray" />
+
     </StackPanel>
 
     <DataGrid x:Name="ConnectionDataGrid" 
@@ -111,6 +125,7 @@
             </Style>
           </DataGridTextColumn.CellStyle>
         </DataGridTextColumn>
+        <DataGridTextColumn IsReadOnly="True" Header="Tags" Binding="{Binding TagsText}" />
         <DataGridTextColumn IsReadOnly="True" Header="Comments" Binding="{Binding Entity.Comments, Converter={StaticResource StringToCommaStringConverter}}"/>
         <DataGridComboBoxColumn IsReadOnly="True" Header="Filter" SelectedValueBinding="{Binding Entity.Filter, Converter={StaticResource EnumListFilterKind}}" ItemsSource="{StaticResource EnumListFilterKind}" />
         <DataGridTextColumn IsReadOnly="True" Header="FilterAcl" Binding="{Binding Entity.FilterAcl, Converter={StaticResource StringsToCommaStringConverter}}" />

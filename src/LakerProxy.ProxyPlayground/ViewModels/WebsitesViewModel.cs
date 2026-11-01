@@ -1,13 +1,19 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Reactive;
+using System.Reactive.Linq;
+using System.Reactive.Subjects;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Data;
 using Caliburn.Micro;
 using LakerProxy.WebApi;
 using LakerProxy.ProxyPlayground.Settings;
@@ -73,6 +79,19 @@ namespace LakerProxy.ProxyPlayground.ViewModels
     public WebsitesViewModel(ProxyServer settings) : base(settings)
     {
       Entities = new ObservableCollection<EntityVm>();
+
+      // the grid binds to the default view of Entities; the filter lives on that view,
+      // so it survives Refresh() (which only clears/refills the collection) and
+      // combines with the CustomSort set by the view's sorting handler
+      _entitiesView = CollectionViewSource.GetDefaultView(Entities);
+      _entitiesView.Filter = FilterEntity;
+      ((INotifyCollectionChanged)_entitiesView).CollectionChanged += (_, _) => NotifyOfPropertyChange(() => FilterSummary);
+
+      // constructed on the UI thread, so the current synchronization context is the dispatcher
+      _filterSubscription = _filterChanged
+        .Throttle(FilterDebounce)
+        .ObserveOn(SynchronizationContext.Current)
+        .Subscribe(_ => ApplyFilters());
 
       Client = new LakerProxyApiClient(new LakerProxyApiOptions()
       {
@@ -361,6 +380,98 @@ namespace LakerProxy.ProxyPlayground.ViewModels
 
 
 
+    private readonly ICollectionView _entitiesView;
+
+    private string _hostnameFilter = "";
+    /// <summary>
+    /// Case-insensitive substring match on the hostname
+    /// </summary>
+    public string HostnameFilter
+    {
+      get { return _hostnameFilter; }
+      set
+      {
+        if (Equals(value, _hostnameFilter)) return;
+        _hostnameFilter = value ?? "";
+        NotifyOfPropertyChange();
+        ScheduleApplyFilters();
+      }
+    }
+
+    private string _tagFilter = "";
+    /// <summary>
+    /// Space separated words; a website matches when every word is a (case-insensitive) prefix of one of its tags
+    /// </summary>
+    public string TagFilter
+    {
+      get { return _tagFilter; }
+      set
+      {
+        if (Equals(value, _tagFilter)) return;
+        _tagFilter = value ?? "";
+        NotifyOfPropertyChange();
+        ScheduleApplyFilters();
+      }
+    }
+
+    public bool HasFilter => !string.IsNullOrWhiteSpace(HostnameFilter) || !string.IsNullOrWhiteSpace(TagFilter);
+
+    public string FilterSummary
+    {
+      get
+      {
+        if (!HasFilter)
+          return "";
+        return $"{_entitiesView.Cast<object>().Count()} of {Entities.Count}";
+      }
+    }
+
+    public void ClearFilters()
+    {
+      HostnameFilter = "";
+      TagFilter = "";
+      // no need to wait for the debounce when clearing
+      ApplyFilters();
+    }
+
+    // refreshing the view on every keystroke is slow with many rows; wait until typing pauses
+    private static readonly TimeSpan FilterDebounce = TimeSpan.FromMilliseconds(300);
+    private readonly Subject<Unit> _filterChanged = new();
+    private readonly IDisposable _filterSubscription;
+
+    private void ScheduleApplyFilters()
+    {
+      _filterChanged.OnNext(Unit.Default);
+    }
+
+    private void ApplyFilters()
+    {
+      _entitiesView.Refresh();
+      NotifyOfPropertyChange(() => HasFilter);
+      NotifyOfPropertyChange(() => FilterSummary);
+    }
+
+    private bool FilterEntity(object item)
+    {
+      if (item is not EntityVm vm)
+        return true;
+
+      var hostname = HostnameFilter.Trim();
+      if (hostname.Length > 0 && (vm.Entity.Hostname ?? "").IndexOf(hostname, StringComparison.OrdinalIgnoreCase) < 0)
+        return false;
+
+      var tagTerms = TagFilter.Split((char[])null, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+      foreach (var term in tagTerms)
+      {
+        if (!vm.Entity.Tags.Any(tag => tag.StartsWith(term, StringComparison.OrdinalIgnoreCase)))
+          return false;
+      }
+
+      return true;
+    }
+
+
+
     private CancellationTokenSource _dnsCts;
 
     private bool _isCheckingDns;
@@ -546,7 +657,10 @@ namespace LakerProxy.ProxyPlayground.ViewModels
     protected override async Task OnDeactivateAsync(bool close, CancellationToken cancellationToken)
     {
       if (close)
+      {
         _dnsCts?.Cancel();
+        _filterSubscription.Dispose();
+      }
       if (close && AcmeLogs != null)
         await ((IDeactivate)AcmeLogs).DeactivateAsync(true, cancellationToken);
       await base.OnDeactivateAsync(close, cancellationToken);

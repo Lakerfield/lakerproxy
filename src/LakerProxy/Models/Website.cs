@@ -53,6 +53,16 @@ namespace LakerProxy.Models
 
     public string Comments { get; set; } = "";
 
+    /// <summary>
+    /// Free-form words for grouping/filtering in the manager, no runtime meaning
+    /// </summary>
+    private List<string>? _tags;
+    public List<string> Tags
+    {
+      get => _tags ??= new List<string>();
+      set => _tags = value;
+    }
+
     private List<CertificateData>? _certificates;
     public List<CertificateData> Certificates
     {

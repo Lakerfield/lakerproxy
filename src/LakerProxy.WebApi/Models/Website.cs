@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace LakerProxy.WebApi.Models
 {
@@ -56,12 +57,44 @@ namespace LakerProxy.WebApi.Models
 
     public string Comments { get; set; } = "";
 
+    /// <summary>
+    /// Free-form words for grouping/filtering in the manager, no runtime meaning
+    /// </summary>
+    private List<string> _tags;
+    public List<string> Tags
+    {
+      get => _tags ??= new List<string>();
+      set => _tags = value;
+    }
+
     public WebsiteCertificate[]? Certificates { get; set; }
 
 
     public Website Clone()
     {
       return (Website)MemberwiseClone();
+    }
+
+    /// <summary>
+    /// Tags are single lowercase words: split on whitespace, trim, drop empties and duplicates.
+    /// Shared by the server (on save) and the manager (editor input) so both agree on the format.
+    /// </summary>
+    public static List<string> NormalizeTags(IEnumerable<string> tags)
+    {
+      if (tags == null)
+        return new List<string>();
+
+      return tags
+        .Where(t => !string.IsNullOrWhiteSpace(t))
+        .SelectMany(t => t.Split((char[])null, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        .Select(t => t.ToLowerInvariant())
+        .Distinct()
+        .ToList();
+    }
+
+    public static List<string> NormalizeTags(string tags)
+    {
+      return NormalizeTags(new[] { tags });
     }
   }
 

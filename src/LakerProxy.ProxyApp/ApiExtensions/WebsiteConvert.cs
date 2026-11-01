@@ -33,6 +33,7 @@ namespace LakerProxy.ProxyApp.ApiExtensions
         FilterDestination = entity.FilterDestination,
         HasWebsiteData = !ShortGuid.IsEmpty(entity.WebsiteData),
         Comments = entity.Comments,
+        Tags = entity.Tags.ToList(),
         Certificates = entity.Certificates.Select(ToWeb).ToArray()
       };
 

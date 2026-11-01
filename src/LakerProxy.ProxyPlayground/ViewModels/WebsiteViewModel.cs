@@ -36,6 +36,20 @@ namespace LakerProxy.ProxyPlayground.ViewModels
 
     }
 
+    /// <summary>
+    /// Tags as one space separated string for the editor and the grid column.
+    /// The setter assigns a new list so a cloned entity never shares the list with the original.
+    /// </summary>
+    public string TagsText
+    {
+      get { return string.Join(" ", Entity.Tags); }
+      set
+      {
+        Entity.Tags = Entity.NormalizeTags(value);
+        NotifyOfPropertyChange();
+      }
+    }
+
 
     // DNS check results per address family; filled by WebsitesViewModel.CheckDns,
     // null until a check has run
