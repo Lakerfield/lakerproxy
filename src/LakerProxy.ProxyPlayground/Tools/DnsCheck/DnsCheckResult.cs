@@ -35,10 +35,98 @@ namespace LakerProxy.ProxyPlayground.Tools.DnsCheck
     public IReadOnlyList<string> CnameChain { get; init; } = Array.Empty<string>();
     public IReadOnlyList<(IPAddress Ip, int Ttl)> Records { get; init; } = Array.Empty<(IPAddress, int)>();
     public bool NxDomain { get; init; }
+    /// <summary>RCODE SERVFAIL; with a validating resolver usually a broken DNSSEC chain</summary>
+    public bool ServerFailure { get; init; }
+    /// <summary>AD flag: the resolver validated the DNSSEC chain of this answer</summary>
+    public bool AuthenticData { get; init; }
+    /// <summary>RRSIG records were returned (zone is signed), regardless of validation</summary>
+    public bool HasRrsig { get; init; }
     public string Resolver { get; init; } = "";
     public string Error { get; init; }
 
     public IEnumerable<IPAddress> Addresses => Records.Select(r => r.Ip);
+  }
+
+  public enum DnssecStatus
+  {
+    NotChecked,
+    Checking,
+    /// <summary>Resolver validated every answer (AD flag)</summary>
+    Signed,
+    /// <summary>No AD flag and no RRSIG: zone is not signed</summary>
+    Unsigned,
+    /// <summary>SERVFAIL while a DS record exists for the zone: signed but validation fails</summary>
+    Broken,
+    /// <summary>RRSIG present but no AD flag: the resolver that answered does not validate</summary>
+    NotValidated,
+    Unknown,
+    Skipped,
+  }
+
+  /// <summary>
+  /// One grid cell: DNSSEC verdict for one website, derived from the A/AAAA lookups of all its names
+  /// </summary>
+  public class DnssecCheckResult
+  {
+    public DnssecStatus Status { get; init; }
+    public IReadOnlyList<DnsLookup> Lookups { get; init; } = Array.Empty<DnsLookup>();
+    public string Message { get; init; } = "";
+    public DateTime CheckedAt { get; init; } = DateTime.Now;
+
+    public static DnssecCheckResult Checking() => new() { Status = DnssecStatus.Checking };
+    public static DnssecCheckResult Skipped(string reason) => new() { Status = DnssecStatus.Skipped, Message = reason };
+    public static DnssecCheckResult Failed(string message) => new() { Status = DnssecStatus.Unknown, Message = message };
+
+    public static int Rank(DnssecStatus status) => status switch
+    {
+      DnssecStatus.Broken => 0,
+      DnssecStatus.Unknown => 1,
+      DnssecStatus.NotValidated => 2,
+      DnssecStatus.Unsigned => 3,
+      DnssecStatus.Signed => 4,
+      DnssecStatus.Skipped => 5,
+      DnssecStatus.Checking => 6,
+      _ => 7,
+    };
+
+    public string ShortText => Status switch
+    {
+      DnssecStatus.NotChecked => "",
+      DnssecStatus.Checking => "...",
+      DnssecStatus.Signed => "signed",
+      DnssecStatus.Unsigned => "unsigned",
+      DnssecStatus.Broken => "BROKEN",
+      DnssecStatus.NotValidated => "not validated",
+      DnssecStatus.Unknown => "unknown" + (string.IsNullOrWhiteSpace(Message) ? "" : ": " + Message),
+      DnssecStatus.Skipped => "skipped",
+      _ => Status.ToString(),
+    };
+
+    public string ToolTipText
+    {
+      get
+      {
+        if (Status is DnssecStatus.NotChecked or DnssecStatus.Checking)
+          return null;
+
+        var sb = new StringBuilder();
+        sb.AppendLine($"DNSSEC: {Status}");
+        if (!string.IsNullOrWhiteSpace(Message))
+          sb.AppendLine(Message);
+        sb.AppendLine($"Checked at {CheckedAt:yyyy-MM-dd HH:mm:ss}");
+
+        foreach (var lookup in Lookups)
+        {
+          var family = lookup.Family == AddressFamily.InterNetworkV6 ? "AAAA" : "A";
+          var state = lookup.ServerFailure ? "SERVFAIL"
+            : lookup.Error != null ? $"error: {lookup.Error}"
+            : $"AD={(lookup.AuthenticData ? "yes" : "no")} RRSIG={(lookup.HasRrsig ? "yes" : "no")}";
+          sb.AppendLine($"  {family} {lookup.Name} via {lookup.Resolver}: {state}");
+        }
+
+        return sb.ToString().TrimEnd();
+      }
+    }
   }
 
   /// <summary>

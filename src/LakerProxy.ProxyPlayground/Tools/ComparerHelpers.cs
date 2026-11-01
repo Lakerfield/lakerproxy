@@ -95,23 +95,23 @@ public class WebsiteHostnameComparer : IComparer<WebsiteViewModel>, IComparer
 }
 
 /// <summary>
-/// Sorts on DNS check status (problems first), then on hostname
+/// Sorts on a DNS/DNSSEC status rank (problems first), then on hostname
 /// </summary>
 public class WebsiteDnsComparer : IComparer<WebsiteViewModel>, IComparer
 {
-  private readonly Func<WebsiteViewModel, DnsCheckResult> _selector;
+  private readonly Func<WebsiteViewModel, int> _rank;
   public ListSortDirection SortDirection { get; set; }
 
-  public WebsiteDnsComparer(Func<WebsiteViewModel, DnsCheckResult> selector, ListSortDirection sortDirection)
+  public WebsiteDnsComparer(Func<WebsiteViewModel, int> rank, ListSortDirection sortDirection)
   {
-    _selector = selector;
+    _rank = rank;
     SortDirection = sortDirection;
   }
 
   public int Compare(WebsiteViewModel x, WebsiteViewModel y)
   {
-    var rankX = DnsCheckResult.Rank(x == null ? DnsCheckStatus.NotChecked : _selector(x)?.Status ?? DnsCheckStatus.NotChecked);
-    var rankY = DnsCheckResult.Rank(y == null ? DnsCheckStatus.NotChecked : _selector(y)?.Status ?? DnsCheckStatus.NotChecked);
+    var rankX = x == null ? int.MaxValue : _rank(x);
+    var rankY = y == null ? int.MaxValue : _rank(y);
 
     var result = SortDirection == ListSortDirection.Ascending
       ? rankX.CompareTo(rankY)

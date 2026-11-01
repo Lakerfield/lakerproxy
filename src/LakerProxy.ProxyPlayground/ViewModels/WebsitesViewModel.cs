@@ -527,10 +527,12 @@ namespace LakerProxy.ProxyPlayground.ViewModels
           {
             vm.DnsV4 = DnsCheckResult.Skipped(AddressFamily.InterNetwork, skipReason);
             vm.DnsV6 = DnsCheckResult.Skipped(AddressFamily.InterNetworkV6, skipReason);
+            vm.Dnssec = DnssecCheckResult.Skipped(skipReason);
             continue;
           }
           vm.DnsV4 = DnsCheckResult.Checking(AddressFamily.InterNetwork);
           vm.DnsV6 = DnsCheckResult.Checking(AddressFamily.InterNetworkV6);
+          vm.Dnssec = DnssecCheckResult.Checking();
           pending.Add(vm);
         }
 
@@ -552,10 +554,14 @@ namespace LakerProxy.ProxyPlayground.ViewModels
             var v6 = checker.CheckAsync(names, vm.Entity.Scope, AddressFamily.InterNetworkV6, expected, ct);
             await Task.WhenAll(v4, v6);
 
+            // dnssec verdict comes from the same answers (DO bit is set on every query)
+            var dnssec = await checker.EvaluateDnssecAsync(vm.Entity.Hostname, v4.Result.Lookups.Concat(v6.Result.Lookups).ToList(), ct);
+
             OnUIThread(() =>
             {
               vm.DnsV4 = v4.Result;
               vm.DnsV6 = v6.Result;
+              vm.Dnssec = dnssec;
             });
           }
           catch (OperationCanceledException)
@@ -564,6 +570,7 @@ namespace LakerProxy.ProxyPlayground.ViewModels
             {
               vm.DnsV4 = null;
               vm.DnsV6 = null;
+              vm.Dnssec = null;
             });
           }
           catch (Exception exception)
@@ -572,6 +579,7 @@ namespace LakerProxy.ProxyPlayground.ViewModels
             {
               vm.DnsV4 = DnsCheckResult.Failed(AddressFamily.InterNetwork, exception.Message);
               vm.DnsV6 = DnsCheckResult.Failed(AddressFamily.InterNetworkV6, exception.Message);
+              vm.Dnssec = DnssecCheckResult.Failed(exception.Message);
             });
           }
           finally

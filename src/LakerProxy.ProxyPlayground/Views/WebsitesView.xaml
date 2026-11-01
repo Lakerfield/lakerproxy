@@ -85,11 +85,16 @@
           <Setter Property="Control.HorizontalAlignment"
                   Value="Right" />
         </Style>
+        <!-- right click on the cell copies the hostname; the cell's DataContext is the row's WebsiteViewModel -->
+        <Style x:Key="HostnameCell" TargetType="DataGridCell">
+          <Setter Property="ToolTip" Value="Right click to copy the hostname" />
+          <EventSetter Event="MouseRightButtonUp" Handler="HostnameCellMouseRightButtonUp" />
+        </Style>
       </DataGrid.Resources>
 
       <DataGrid.Columns>
         <!--<DataGridTextColumn IsReadOnly="True" Header="Hostname" Binding="{Binding Entity.Hostname, Converter={StaticResource DomainExtensionFillConverter}}" CellStyle="{StaticResource CellRightAlign}"/>-->
-        <DataGridTemplateColumn Header="Hostname">
+        <DataGridTemplateColumn Header="Hostname" CellStyle="{StaticResource HostnameCell}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock controls:TextBlockProperties.FormattedText="{Binding Entity.Hostname}" />
@@ -122,6 +127,14 @@
             <Style TargetType="DataGridCell">
               <Setter Property="Foreground" Value="{Binding DnsV6, Converter={StaticResource DnsCheckToTextColorConverter}}"/>
               <Setter Property="ToolTip" Value="{Binding DnsV6ToolTip}"/>
+            </Style>
+          </DataGridTextColumn.CellStyle>
+        </DataGridTextColumn>
+        <DataGridTextColumn IsReadOnly="True" Header="DNSSEC" Binding="{Binding DnssecInfo}" SortMemberPath="DnssecInfo">
+          <DataGridTextColumn.CellStyle>
+            <Style TargetType="DataGridCell">
+              <Setter Property="Foreground" Value="{Binding Dnssec, Converter={StaticResource DnsCheckToTextColorConverter}}"/>
+              <Setter Property="ToolTip" Value="{Binding DnssecToolTip}"/>
             </Style>
           </DataGridTextColumn.CellStyle>
         </DataGridTextColumn>

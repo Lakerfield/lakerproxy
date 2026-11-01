@@ -79,6 +79,21 @@ namespace LakerProxy.ProxyPlayground.ViewModels
       }
     }
 
+    private DnssecCheckResult _dnssec;
+    public DnssecCheckResult Dnssec
+    {
+      get { return _dnssec; }
+      set
+      {
+        _dnssec = value;
+        NotifyOfPropertyChange();
+        NotifyOfPropertyChange(() => DnssecInfo);
+        NotifyOfPropertyChange(() => DnssecToolTip);
+      }
+    }
+
+    public string DnssecInfo => Dnssec?.ShortText ?? "";
+    public string DnssecToolTip => Dnssec?.ToolTipText;
     public string DnsV4Info => DnsV4?.ShortText ?? "";
     public string DnsV4ToolTip => DnsV4?.ToolTipText;
     public string DnsV6Info => DnsV6?.ShortText ?? "";

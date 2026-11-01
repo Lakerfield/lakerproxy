@@ -11,6 +11,9 @@ namespace LakerProxy.ProxyPlayground.Converters
   {
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
+      if (value is DnssecCheckResult dnssec)
+        return ConvertDnssec(dnssec);
+
       var result = value as DnsCheckResult;
       if (result == null)
         return Brushes.Black;
@@ -46,6 +49,34 @@ namespace LakerProxy.ProxyPlayground.Converters
           return Brushes.Gray;
 
         case DnsCheckStatus.NotChecked:
+        default:
+          return Brushes.Black;
+      }
+    }
+
+    private static Brush ConvertDnssec(DnssecCheckResult result)
+    {
+      switch (result.Status)
+      {
+        case DnssecStatus.Signed:
+          return Brushes.DarkGreen;
+
+        case DnssecStatus.Broken:
+          return Brushes.Red;
+
+        case DnssecStatus.NotValidated:
+          return Brushes.Orange;
+
+        case DnssecStatus.Unknown:
+          return Brushes.DarkRed;
+
+        // unsigned is the norm for many zones and deliberately not flagged
+        case DnssecStatus.Unsigned:
+        case DnssecStatus.Checking:
+        case DnssecStatus.Skipped:
+          return Brushes.Gray;
+
+        case DnssecStatus.NotChecked:
         default:
           return Brushes.Black;
       }

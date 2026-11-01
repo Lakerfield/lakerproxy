@@ -52,6 +52,8 @@ namespace LakerProxy.ProxyPlayground.Tools.DnsCheck
       options.Retries = 1;
       options.ThrowDnsErrors = false;
       options.UseTcpFallback = true;
+      // DO bit: ask for RRSIG records and let the resolver report validation via the AD flag
+      options.RequestDnsSecRecords = true;
       // an empty AAAA answer or an NXDOMAIN is a valid answer; don't ask the next resolver
       options.ContinueOnEmptyResponse = false;
       options.ContinueOnDnsError = false;
@@ -144,8 +146,13 @@ namespace LakerProxy.ProxyPlayground.Tools.DnsCheck
       var response = await client.QueryAsync(name, queryType, QueryClass.IN, ct);
       var resolver = response.NameServer?.ToString() ?? "";
 
+      var authenticData = response.Header.IsAuthenticData;
+
       if (response.Header.ResponseCode == DnsHeaderResponseCode.NotExistentDomain)
-        return new DnsLookup { Name = name, Family = family, NxDomain = true, Resolver = resolver };
+        return new DnsLookup { Name = name, Family = family, NxDomain = true, Resolver = resolver, AuthenticData = authenticData };
+
+      if (response.Header.ResponseCode == DnsHeaderResponseCode.ServerFailure)
+        return new DnsLookup { Name = name, Family = family, Resolver = resolver, ServerFailure = true, Error = response.ErrorMessage };
 
       if (response.HasError)
         return new DnsLookup { Name = name, Family = family, Resolver = resolver, Error = response.ErrorMessage };
@@ -166,7 +173,72 @@ namespace LakerProxy.ProxyPlayground.Tools.DnsCheck
         CnameChain = cnames,
         Records = records,
         Resolver = resolver,
+        AuthenticData = authenticData,
+        HasRrsig = response.Answers.OfType<RRSigRecord>().Any(),
       };
+    }
+
+
+    /// <summary>
+    /// True when a DS record exists for the name or one of its parent zones (down to two labels),
+    /// i.e. the zone is signed at the registry. Used to tell a broken DNSSEC chain from a plain SERVFAIL.
+    /// </summary>
+    public async Task<bool> HasDsRecordAsync(string hostname, CancellationToken ct)
+    {
+      var labels = Normalize(hostname).Split('.', StringSplitOptions.RemoveEmptyEntries);
+      for (var skip = 0; labels.Length - skip >= 2; skip++)
+      {
+        var zone = string.Join(".", labels.Skip(skip));
+        try
+        {
+          var response = await _publicClient.QueryAsync(zone, QueryType.DS, QueryClass.IN, ct);
+          if (response.Answers.OfType<DsRecord>().Any())
+            return true;
+        }
+        catch (OperationCanceledException)
+        {
+          throw;
+        }
+        catch (Exception)
+        {
+          // transport error on this level; keep walking up, the parent may still answer
+        }
+      }
+      return false;
+    }
+
+    /// <summary>
+    /// DNSSEC verdict for a website from the A/AAAA lookups of all its names
+    /// </summary>
+    public async Task<DnssecCheckResult> EvaluateDnssecAsync(string hostname, IReadOnlyList<DnsLookup> lookups, CancellationToken ct)
+    {
+      if (lookups.Any(l => l.ServerFailure))
+      {
+        var hasDs = await HasDsRecordAsync(hostname, ct);
+        return new DnssecCheckResult
+        {
+          Status = hasDs ? DnssecStatus.Broken : DnssecStatus.Unknown,
+          Lookups = lookups,
+          Message = hasDs
+            ? "resolver returned SERVFAIL while a DS record exists: the signed zone fails validation"
+            : "server failure",
+        };
+      }
+
+      var answered = lookups.Where(l => l.Error == null).ToArray();
+      if (answered.Length == 0)
+        return new DnssecCheckResult { Status = DnssecStatus.Unknown, Lookups = lookups, Message = lookups.FirstOrDefault()?.Error ?? "no answer" };
+
+      if (answered.All(l => l.AuthenticData))
+        return new DnssecCheckResult { Status = DnssecStatus.Signed, Lookups = lookups };
+
+      if (answered.Any(l => l.AuthenticData))
+        return new DnssecCheckResult { Status = DnssecStatus.Signed, Lookups = lookups, Message = "not every answer carried the AD flag" };
+
+      if (answered.Any(l => l.HasRrsig))
+        return new DnssecCheckResult { Status = DnssecStatus.NotValidated, Lookups = lookups, Message = "zone is signed (RRSIG) but the resolver that answered did not validate it" };
+
+      return new DnssecCheckResult { Status = DnssecStatus.Unsigned, Lookups = lookups };
     }
 
 
