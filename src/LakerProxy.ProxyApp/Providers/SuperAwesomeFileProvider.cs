@@ -56,6 +56,15 @@ namespace LakerProxy.ProxyApp.Providers
       website.Update(data);
     }
 
+    /// <summary>
+    /// Existence check without touching the response headers (see SuperAwesomeWebsite.GetFileInfo)
+    /// </summary>
+    public async ValueTask<bool> FileExists(string subpath)
+    {
+      var website = await GetWebsite();
+      return website.FileExists(subpath);
+    }
+
     public IDirectoryContents GetDirectoryContents(string subpath)
     {
       // HACK: Take .Result of Task

@@ -186,24 +186,16 @@ namespace LakerProxy.ProxyApp
       // Static-site branch: UseStaticFiles is middleware and cannot be called per
       // request, so build a sub-pipeline once and hand its RequestDelegate to
       // MapWebsiteKind.
+      var staticSiteFiles = app.ApplicationServices.GetRequiredService<SuperAwesomeFileProvider>();
       var staticSiteApp = app.New();
-      staticSiteApp.Use(async (context, next) =>
-      {
-        if (context.Request.Path == "/")
-          context.Request.Path = "/index.html";
-        await next();
-      });
+      staticSiteApp.UseStaticSiteDefaultDocument(staticSiteFiles);
       staticSiteApp.UseStaticFiles(new StaticFileOptions()
       {
-        FileProvider = app.ApplicationServices.GetRequiredService<SuperAwesomeFileProvider>(),
+        FileProvider = staticSiteFiles,
         ServeUnknownFileTypes = true,
         HttpsCompression = HttpsCompressionMode.DoNotCompress,
       });
-      staticSiteApp.Run(context =>
-      {
-        context.Response.StatusCode = 404;
-        return Task.CompletedTask;
-      });
+      staticSiteApp.RunStaticSiteNotFound(staticSiteFiles);
       var staticSiteBranch = staticSiteApp.Build();
 
       app.MapWebsiteKind(

@@ -132,6 +132,15 @@ namespace LakerProxy.ProxyApp.Providers
       return _files.FirstOrDefault(f => f.PhysicalPathInt.Equals(path));
     }
 
+    /// <summary>
+    /// True when the zip contains a file (not a directory entry) at this path. Unlike GetFileInfo this has no side effects on the response.
+    /// </summary>
+    public bool FileExists(string subpath)
+    {
+      var path = subpath.TrimStart('/');
+      return _files.Any(f => !f.IsDirectory && f.PhysicalPathInt.Equals(path));
+    }
+
     public IDirectoryContents GetDirectoryContents(string subpath)
     {
       // todo implement filter files on directory, for directory browsing
