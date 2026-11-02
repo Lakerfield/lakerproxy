@@ -94,7 +94,7 @@
 
       <DataGrid.Columns>
         <!--<DataGridTextColumn IsReadOnly="True" Header="Hostname" Binding="{Binding Entity.Hostname, Converter={StaticResource DomainExtensionFillConverter}}" CellStyle="{StaticResource CellRightAlign}"/>-->
-        <DataGridTemplateColumn Header="Hostname" CellStyle="{StaticResource HostnameCell}">
+        <DataGridTemplateColumn Header="Hostname" SortMemberPath="Entity.Hostname" CellStyle="{StaticResource HostnameCell}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock controls:TextBlockProperties.FormattedText="{Binding Entity.Hostname}" />

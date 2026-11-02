@@ -107,6 +107,10 @@ namespace LakerProxy.ProxyPlayground.Views
           return;
       }
 
+      // the default sort clears the arrows of the other columns, do the same for a custom sort
+      foreach (var column in dataGrid.Columns)
+        if (column != e.Column)
+          column.SortDirection = null;
       e.Column.SortDirection = sortDirection;
 
       //We've handled the sort
