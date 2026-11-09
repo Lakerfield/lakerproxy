@@ -1,0 +1,158 @@
+name: Release manager
+
+# Builds the WPF manager (win-x64) and publishes it as a Velopack release to the
+# S3 bucket behind https://download.lakerproxy.net/manager. Installed managers
+# update themselves from that feed (AppUpdater.cs).
+#
+# Runs on the self-hosted Windows runner (labels: self-hosted, windows, signing)
+# because the Authenticode certificate lives on a SafeNet USB token there. The
+# runner must run in an interactive session so the token can ask for its PIN.
+# The LakerfieldFeed NuGet credentials are in that account's user NuGet.Config.
+#
+# Repository variables (Settings → Secrets and variables → Actions → Variables):
+#   S3_ENDPOINT      S3-compatible endpoint URL, e.g. https://s3.example.com
+#   S3_BUCKET        bucket name (its root is served as download.lakerproxy.net)
+#   S3_REGION        optional, region name if the endpoint requires one
+#   SIGN_THUMBPRINT  SHA-1 thumbprint of the signing certificate; empty = unsigned build
+# Repository secrets:
+#   S3_KEY_ID, S3_SECRET
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Semver of this release, e.g. 2.0.0 (Velopack needs exactly three parts, optional -prerelease)"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-manager
+  cancel-in-progress: false
+
+env:
+  VERSION: ${{ inputs.version }}
+  VPK_VERSION: "1.2.161"   # keep equal to the Velopack PackageReference in LakerProxy.ProxyPlayground.csproj
+  PACK_ID: LakerProxyManager
+  CHANNEL: win
+  S3_PREFIX: manager
+
+jobs:
+  manager:
+    name: Build and release manager ${{ inputs.version }}
+    runs-on: [self-hosted, windows, signing]
+    defaults:
+      run:
+        shell: pwsh
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate version and tag
+        run: |
+          $ErrorActionPreference = "Stop"
+          if ($env:VERSION -notmatch '^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$') {
+            Write-Host "::error::'$env:VERSION' is not a valid semver (expected MAJOR.MINOR.PATCH[-prerelease])"
+            exit 1
+          }
+          git ls-remote --exit-code --tags origin "refs/tags/manager-v$env:VERSION" 2>$null
+          if ($LASTEXITCODE -eq 0) {
+            Write-Host "::error::tag manager-v$env:VERSION already exists"
+            exit 1
+          }
+          dotnet --version
+
+      - name: Install vpk
+        run: |
+          $ErrorActionPreference = "Stop"
+          dotnet tool update -g vpk --version $env:VPK_VERSION
+          if ($LASTEXITCODE -ne 0) { throw "installing vpk failed" }
+          vpk --version
+
+      - name: Publish
+        run: |
+          $ErrorActionPreference = "Stop"
+          dotnet publish src/LakerProxy.ProxyPlayground `
+            -c Release -r win-x64 --self-contained `
+            -p:Version=$env:VERSION `
+            -p:ContinuousIntegrationBuild=true `
+            -o out/manager
+          if ($LASTEXITCODE -ne 0) { throw "dotnet publish failed" }
+          if (-not (Test-Path "out/manager/$env:PACK_ID.exe")) { throw "out/manager/$env:PACK_ID.exe not found" }
+
+      - name: Download previous releases (for delta packages)
+        env:
+          VPK_KEY_ID: ${{ secrets.S3_KEY_ID }}
+          VPK_SECRET: ${{ secrets.S3_SECRET }}
+        run: |
+          $args = @("download", "s3",
+            "--bucket", "${{ vars.S3_BUCKET }}",
+            "--endpoint", "${{ vars.S3_ENDPOINT }}",
+            "--prefix", $env:S3_PREFIX,
+            "--channel", $env:CHANNEL,
+            "-o", (Join-Path $PWD "out/releases"))
+          if ("${{ vars.S3_REGION }}") { $args += @("--region", "${{ vars.S3_REGION }}") }
+          vpk @args
+          if ($LASTEXITCODE -ne 0) {
+            Write-Host "::warning::no previous releases downloaded; building without delta packages"
+            New-Item -ItemType Directory -Force (Join-Path $PWD "out/releases") | Out-Null
+          }
+
+      - name: Pack and sign
+        env:
+          SIGN_THUMBPRINT: ${{ vars.SIGN_THUMBPRINT }}
+        run: |
+          $ErrorActionPreference = "Stop"
+          $args = @("pack",
+            "--packId", $env:PACK_ID,
+            "--packVersion", $env:VERSION,
+            "--packDir", (Join-Path $PWD "out/manager"),
+            "--mainExe", "$env:PACK_ID.exe",
+            "--packTitle", "LakerProxy Manager",
+            "--packAuthors", "Lakerfield B.V.",
+            "--icon", (Join-Path $PWD "src/LakerProxy.ProxyPlayground/server_earth.ico"),
+            "--channel", $env:CHANNEL,
+            "-o", (Join-Path $PWD "out/releases"))
+          if ($env:SIGN_THUMBPRINT) {
+            # token-based certificate: selected by thumbprint from the user's certificate store
+            $args += @("--signParams", "/sha1 $env:SIGN_THUMBPRINT /tr http://timestamp.sectigo.com /td sha256 /fd sha256")
+          } else {
+            Write-Host "::warning::SIGN_THUMBPRINT is empty, producing an unsigned build"
+          }
+          vpk @args
+          if ($LASTEXITCODE -ne 0) { throw "vpk pack failed" }
+          Get-ChildItem out/releases | Select-Object Name, Length | Format-Table -AutoSize
+
+      - name: Upload to S3
+        env:
+          VPK_KEY_ID: ${{ secrets.S3_KEY_ID }}
+          VPK_SECRET: ${{ secrets.S3_SECRET }}
+        run: |
+          $ErrorActionPreference = "Stop"
+          $args = @("upload", "s3",
+            "--bucket", "${{ vars.S3_BUCKET }}",
+            "--endpoint", "${{ vars.S3_ENDPOINT }}",
+            "--prefix", $env:S3_PREFIX,
+            "--channel", $env:CHANNEL,
+            "--keepMaxReleases", "10",
+            "-o", (Join-Path $PWD "out/releases"))
+          if ("${{ vars.S3_REGION }}") { $args += @("--region", "${{ vars.S3_REGION }}") }
+          vpk @args
+          if ($LASTEXITCODE -ne 0) { throw "vpk upload failed" }
+          Write-Host "Setup: https://download.lakerproxy.net/$env:S3_PREFIX/$env:PACK_ID-$env:CHANNEL-Setup.exe"
+
+      - name: Tag release
+        run: |
+          $ErrorActionPreference = "Stop"
+          git tag "manager-v$env:VERSION" $env:GITHUB_SHA
+          git push origin "manager-v$env:VERSION"
+          if ($LASTEXITCODE -ne 0) { throw "pushing the tag failed" }
+
+      - name: Clean workspace
+        if: always()
+        run: Remove-Item -Recurse -Force out -ErrorAction SilentlyContinue

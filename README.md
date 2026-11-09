@@ -141,6 +141,19 @@ Notes:
 - The script honours `LAKERPROXY_ROOT`, `LAKERPROXY_SERVICE`, `LAKERPROXY_USER` and
   `LAKERPROXY_KEEP` environment variables for non-default locations.
 
+## Install the desktop manager
+
+The Windows manager is distributed with [Velopack](https://velopack.io) and keeps itself up to
+date: on start it checks `https://download.lakerproxy.net/manager`, downloads a newer release in
+the background and offers a restart. Install it with
+
+```
+https://download.lakerproxy.net/manager/LakerProxyManager-win-Setup.exe
+```
+
+A portable zip (`LakerProxyManager-win-Portable.zip`) is published next to it for machines
+where nothing may be installed; the portable build does not self-update.
+
 ## Configuration
 
 The server reads `src/LakerProxy/app-configuration.ini` (committed defaults) and layers
@@ -273,7 +286,32 @@ with `lakerproxy-update`.
 The workflow needs two repository secrets to restore the `Lakerfield.*` packages:
 `LAKERFIELD_FEED_USER` and `LAKERFIELD_FEED_PAT` (a read-only Azure DevOps PAT).
 
-The desktop manager is distributed separately through Velopack and is not part of this workflow.
+### Manager releases
+
+The **Release manager** workflow (`.github/workflows/release-manager.yaml`) publishes the manager
+for win-x64, packs it with `vpk`, signs it and uploads the Velopack feed to the S3 bucket behind
+`download.lakerproxy.net` under the `manager/` prefix. It downloads the previous releases first
+so Velopack can produce delta packages, keeps the last ten releases, and tags the commit as
+`manager-v<version>`. Server and manager versions may diverge; each workflow takes its own
+version input.
+
+The signing certificate lives on a SafeNet USB token, so this workflow runs on a self-hosted
+Windows runner (labels `self-hosted`, `windows`, `signing`) that is started in an interactive
+session, not as a service, otherwise the PIN prompt never appears. One-time setup on that machine:
+
+1. Install the GitHub Actions runner and register it with those labels; start it with `run.cmd`.
+2. .NET 10 SDK, and the `LakerfieldFeed` credentials in the user-level NuGet config (see
+   [Package feeds](#package-feeds)). The workflow installs `vpk` itself.
+3. SafeNet Authentication Client with the token inserted; note the certificate thumbprint.
+
+Repository variables: `S3_ENDPOINT`, `S3_BUCKET`, optional `S3_REGION`, and `SIGN_THUMBPRINT`
+(leave empty for an unsigned test build). Repository secrets: `S3_KEY_ID` and `S3_SECRET`.
+Keep the `vpk` version in the workflow equal to the `Velopack` package version in
+`LakerProxy.ProxyPlayground.csproj`.
+
+Because the repository is public, restrict who can run workflows on the self-hosted runner:
+Settings → Actions → require approval for all outside collaborators, and keep this workflow on
+`workflow_dispatch` only.
 
 ## Status
 

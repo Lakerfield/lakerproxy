@@ -16,17 +16,8 @@ namespace LakerProxy.ProxyPlayground.Views
 
       DataContext = this;
 
-      if (AppDeployment.IsNetworkDeployed)
-      {
-        var current = AppDeployment.CurrentDeployment;
-        Version = $"Version: {current.CurrentVersion}";
-        Location = current.UpdateLocation.ToString();
-      }
-      else
-      {
-        Version = "Version: DEBUG BUILD";
-        Location = "local";
-      }
+      Version = $"Version: {AppUpdater.CurrentVersion}";
+      Location = AppUpdater.IsInstalled ? AppUpdater.UpdateUrl : "local build";
     }
   }
 }

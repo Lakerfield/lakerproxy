@@ -1,6 +1,7 @@
 using System;
 using System.Text;
 using System.Windows;
+using Velopack;
 
 namespace LakerProxy.ProxyPlayground
 {
@@ -9,6 +10,24 @@ namespace LakerProxy.ProxyPlayground
   /// </summary>
   public partial class App : Application
   {
+    /// <summary>
+    /// Custom entry point so Velopack can handle install/update/uninstall hooks
+    /// before any WPF code runs (App.xaml is compiled as Page, see the csproj).
+    /// </summary>
+    [STAThread]
+    public static void Main(string[] args)
+    {
+      VelopackApp.Build().Run();
+
+      var app = new App();
+      app.Run();
+    }
+
+    protected override void OnStartup(StartupEventArgs e)
+    {
+      base.OnStartup(e);
+      _ = AppUpdater.CheckForUpdatesAsync();
+    }
 
     public App()
     {
