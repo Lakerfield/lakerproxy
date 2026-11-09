@@ -10,8 +10,8 @@ name: Release manager
 # The LakerfieldFeed NuGet credentials are in that account's user NuGet.Config.
 #
 # Repository variables (Settings → Secrets and variables → Actions → Variables):
-#   S3_ENDPOINT      S3-compatible endpoint URL, e.g. https://s3.example.com
-#   S3_BUCKET        bucket name (its root is served as download.lakerproxy.net)
+#   S3_ENDPOINT      S3-compatible API endpoint URL, e.g. https://s3.example.com (not the download domain)
+#   S3_BUCKET        bucket name; with bucket "manager" served under download.lakerproxy.net the feed lives at https://download.lakerproxy.net/manager/ without any prefix S3_PREFIX optional key prefix inside the bucket, empty for the bucket root
 #   S3_REGION        optional, region name if the endpoint requires one
 #   SIGN_THUMBPRINT  SHA-1 thumbprint of the signing certificate; empty = unsigned build
 # Repository secrets:
@@ -24,6 +24,16 @@ on:
         description: "Semver of this release, e.g. 2.0.0 (Velopack needs exactly three parts, optional -prerelease)"
         required: true
         type: string
+      self_contained:
+        description: "Bundle the .NET runtime (large). Off = framework-dependent, Setup.exe installs the .NET 10 desktop runtime when missing"
+        required: false
+        type: boolean
+        default: false
+      portable:
+        description: "Also publish LakerProxyManager-win-Portable.zip"
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -37,7 +47,7 @@ env:
   VPK_VERSION: "1.2.161"   # keep equal to the Velopack PackageReference in LakerProxy.ProxyPlayground.csproj
   PACK_ID: LakerProxyManager
   CHANNEL: win
-  S3_PREFIX: manager
+  S3_PREFIX: ${{ vars.S3_PREFIX }}   # optional, empty = bucket root
 
 jobs:
   manager:
@@ -65,20 +75,28 @@ jobs:
             Write-Host "::error::tag manager-v$env:VERSION already exists"
             exit 1
           }
+          $prerelease = if ($env:VERSION -like '*-*') { 'true' } else { 'false' }
+          "PRERELEASE=$prerelease" | Out-File -Append -Encoding utf8 $env:GITHUB_ENV
           dotnet --version
+          exit 0
 
       - name: Install vpk
         run: |
           $ErrorActionPreference = "Stop"
           dotnet tool update -g vpk --version $env:VPK_VERSION
           if ($LASTEXITCODE -ne 0) { throw "installing vpk failed" }
-          vpk --version
+          # vpk has no --version flag; the help header prints "Velopack CLI x.y.z"
+          $banner = (vpk -h 2>&1 | Select-String 'Velopack CLI').Line
+          if (-not $banner) { throw "vpk is not on PATH after installation" }
+          Write-Host $banner
 
       - name: Publish
         run: |
           $ErrorActionPreference = "Stop"
+          $selfContained = if ("${{ inputs.self_contained }}" -eq "true") { "--self-contained" } else { "--no-self-contained" }
+          Write-Host "publishing $selfContained"
           dotnet publish src/LakerProxy.ProxyPlayground `
-            -c Release -r win-x64 --self-contained `
+            -c Release -r win-x64 $selfContained `
             -p:Version=$env:VERSION `
             -p:ContinuousIntegrationBuild=true `
             -o out/manager
@@ -93,15 +111,23 @@ jobs:
           $args = @("download", "s3",
             "--bucket", "${{ vars.S3_BUCKET }}",
             "--endpoint", "${{ vars.S3_ENDPOINT }}",
-            "--prefix", $env:S3_PREFIX,
             "--channel", $env:CHANNEL,
             "-o", (Join-Path $PWD "out/releases"))
+          if ($env:S3_PREFIX) { $args += @("--prefix", $env:S3_PREFIX) }
           if ("${{ vars.S3_REGION }}") { $args += @("--region", "${{ vars.S3_REGION }}") }
-          vpk @args
+          $output = & vpk @args 2>&1 | ForEach-Object { "$_" }
+          $output | Write-Host
           if ($LASTEXITCODE -ne 0) {
-            Write-Host "::warning::no previous releases downloaded; building without delta packages"
+            $text = $output -join "`n"
+            if ($text -match 'signature|AccessDenied|Access Denied|InvalidAccessKeyId|Forbidden|InvalidRequest') {
+              Write-Host "::error::S3 rejected the request. Check S3_KEY_ID/S3_SECRET (no trailing whitespace), S3_ENDPOINT (the provider's S3 API endpoint, not download.lakerproxy.net) and S3_REGION (SigV4 region the provider expects)."
+              exit 1
+            }
+            Write-Host "::warning::no previous releases found; building without delta packages"
             New-Item -ItemType Directory -Force (Join-Path $PWD "out/releases") | Out-Null
           }
+          # the GitHub pwsh wrapper exits with the last native exit code, so reset it explicitly
+          exit 0
 
       - name: Pack and sign
         env:
@@ -117,7 +143,15 @@ jobs:
             "--packAuthors", "Lakerfield B.V.",
             "--icon", (Join-Path $PWD "src/LakerProxy.ProxyPlayground/server_earth.ico"),
             "--channel", $env:CHANNEL,
+            "--runtime", "win-x64",
             "-o", (Join-Path $PWD "out/releases"))
+          if ("${{ inputs.self_contained }}" -ne "true") {
+            # framework-dependent build: Setup.exe installs the .NET 10 desktop runtime when it is missing
+            $args += @("--framework", "net10.0-x64-desktop")
+          }
+          if ("${{ inputs.portable }}" -ne "true") {
+            $args += "--noPortable"
+          }
           if ($env:SIGN_THUMBPRINT) {
             # token-based certificate: selected by thumbprint from the user's certificate store
             $args += @("--signParams", "/sha1 $env:SIGN_THUMBPRINT /tr http://timestamp.sectigo.com /td sha256 /fd sha256")
@@ -137,21 +171,29 @@ jobs:
           $args = @("upload", "s3",
             "--bucket", "${{ vars.S3_BUCKET }}",
             "--endpoint", "${{ vars.S3_ENDPOINT }}",
-            "--prefix", $env:S3_PREFIX,
             "--channel", $env:CHANNEL,
             "--keepMaxReleases", "10",
             "-o", (Join-Path $PWD "out/releases"))
+          if ($env:S3_PREFIX) { $args += @("--prefix", $env:S3_PREFIX) }
           if ("${{ vars.S3_REGION }}") { $args += @("--region", "${{ vars.S3_REGION }}") }
           vpk @args
           if ($LASTEXITCODE -ne 0) { throw "vpk upload failed" }
-          Write-Host "Setup: https://download.lakerproxy.net/$env:S3_PREFIX/$env:PACK_ID-$env:CHANNEL-Setup.exe"
+          Write-Host "uploaded to bucket '${{ vars.S3_BUCKET }}'$(if ($env:S3_PREFIX) { " prefix '$env:S3_PREFIX'" }); Setup.exe is $env:PACK_ID-$env:CHANNEL-Setup.exe"
 
-      - name: Tag release
-        run: |
-          $ErrorActionPreference = "Stop"
-          git tag "manager-v$env:VERSION" $env:GITHUB_SHA
-          git push origin "manager-v$env:VERSION"
-          if ($LASTEXITCODE -ne 0) { throw "pushing the tag failed" }
+      - name: Create GitHub release
+        # creates the tag manager-v{version} on the built commit and attaches the installer;
+        # the Velopack feed on S3 stays the update source for installed managers
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: manager-v${{ inputs.version }}
+          target_commitish: ${{ github.sha }}
+          name: LakerProxy Manager ${{ inputs.version }}
+          generate_release_notes: true
+          prerelease: ${{ env.PRERELEASE == 'true' }}
+          fail_on_unmatched_files: false
+          files: |
+            out/releases/LakerProxyManager-win-Setup.exe
+            out/releases/LakerProxyManager-win-Portable.zip
 
       - name: Clean workspace
         if: always()

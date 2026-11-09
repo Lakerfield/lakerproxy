@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LakerProxy Downloads</title>
+  <meta name="description" content="Download the LakerProxy Manager for Windows and the LakerProxy server releases.">
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg: #f6f7f9;
+      --card: #ffffff;
+      --text: #1b1f24;
+      --muted: #5c6670;
+      --line: #e1e5ea;
+      --accent: #0b6bcb;
+      --accent-text: #ffffff;
+      --accent-hover: #0959a8;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0f1216;
+        --card: #171b21;
+        --text: #e7eaee;
+        --muted: #9aa4af;
+        --line: #2a313a;
+        --accent: #4f9cf0;
+        --accent-text: #0b1220;
+        --accent-hover: #6cadf5;
+      }
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font: 16px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    main {
+      flex: 1;
+      width: 100%;
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 56px 16px 32px;
+    }
+    header { display: flex; align-items: center; gap: 14px; margin-bottom: 28px; }
+    header svg { width: 44px; height: 44px; flex: none; }
+    header h1 { font-size: 1.6rem; margin: 0; line-height: 1.2; }
+    header p { margin: 2px 0 0; color: var(--muted); }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 16px;
+    }
+    .card h2 { margin: 0 0 6px; font-size: 1.15rem; }
+    .card p { margin: 0 0 14px; color: var(--muted); }
+    .button {
+      display: inline-block;
+      background: var(--accent);
+      color: var(--accent-text);
+      text-decoration: none;
+      font-weight: 600;
+      padding: 12px 22px;
+      border-radius: 8px;
+      transition: background .15s;
+    }
+    .button:hover { background: var(--accent-hover); }
+    .meta { margin-top: 12px; font-size: .9rem; color: var(--muted); }
+    .meta span + span::before { content: "·"; margin: 0 8px; }
+    .links { list-style: none; padding: 0; margin: 0; }
+    .links li { padding: 6px 0; }
+    .links a { color: var(--accent); text-decoration: none; }
+    .links a:hover { text-decoration: underline; }
+    footer { text-align: center; padding: 16px; font-size: .85rem; color: var(--muted); }
+    footer a { color: inherit; }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <svg viewBox="0 0 48 48" aria-hidden="true">
+        <circle cx="24" cy="24" r="20" fill="none" stroke="var(--accent)" stroke-width="3"/>
+        <path d="M4 24h40M24 4c6 6 6 34 0 40M24 4c-6 6-6 34 0 40M9 13c8 4 22 4 30 0M9 35c8-4 22-4 30 0" fill="none" stroke="var(--accent)" stroke-width="2.2" stroke-linecap="round"/>
+      </svg>
+      <div>
+        <h1>LakerProxy</h1>
+        <p>Reverse proxy with automatic Let's Encrypt certificates</p>
+      </div>
+    </header>
+
+    <section class="card">
+      <h2>LakerProxy Manager for Windows</h2>
+      <p>Desktop application to manage servers, websites, certificates and API users. Installs per user,
+         updates itself automatically.</p>
+      <a class="button" href="/manager/LakerProxyManager-win-Setup.exe">Install LakerProxy Manager</a>
+      <div class="meta">
+        <span id="version">Checking latest version…</span>
+        <span>Windows 10/11, 64-bit</span>
+        <span>.NET 10 desktop runtime is installed when missing</span>
+      </div>
+      <div class="meta hidden" id="portable">
+        Prefer not to install? <a href="/manager/LakerProxyManager-win-Portable.zip">Portable zip</a> (no automatic updates)
+      </div>
+      <div class="meta">
+        <a href="https://github.com/lakerfield/lakerproxy/releases?q=manager-v&expanded=true" style="color:var(--accent);text-decoration:none">Release notes</a>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>LakerProxy Server</h2>
+      <p>The proxy server runs on Linux and is published as GitHub Releases. Install or update it with one command:</p>
+      <pre style="margin:0 0 14px;padding:12px 14px;border-radius:8px;background:var(--bg);border:1px solid var(--line);overflow:auto;font-size:.88rem">curl -fsSL https://raw.githubusercontent.com/lakerfield/lakerproxy/master/deploy/install.sh | sudo bash</pre>
+      <ul class="links">
+        <li><a href="https://github.com/lakerfield/lakerproxy/releases">Server releases on GitHub</a></li>
+        <li><a href="https://github.com/lakerfield/lakerproxy#install-on-ubuntu">Installation guide</a></li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>Source &amp; documentation</h2>
+      <ul class="links">
+        <li><a href="https://github.com/lakerfield/lakerproxy">github.com/lakerfield/lakerproxy</a></li>
+        <li><a href="https://github.com/lakerfield/lakerproxy/issues">Report an issue</a></li>
+      </ul>
+    </section>
+  </main>
+
+  <footer>
+    © <span id="year"></span> <a href="https://lakerfield.net">Lakerfield B.V.</a>
+  </footer>
+
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    // Latest version from the Velopack feed next to the installer.
+    fetch('/manager/releases.win.json', { cache: 'no-store' })
+      .then(r => r.ok ? r.json() : Promise.reject(r.status))
+      .then(feed => {
+        const full = (feed.Assets || []).filter(a => a.Type === 'Full');
+        if (!full.length) throw new Error('no releases');
+        // highest version wins; compare numeric parts, prerelease sorts below release
+        const parse = v => {
+          const [core, pre] = v.split('-');
+          return { nums: core.split('.').map(Number), pre: pre || '' };
+        };
+        full.sort((a, b) => {
+          const x = parse(a.Version), y = parse(b.Version);
+          for (let i = 0; i < 3; i++) if (x.nums[i] !== y.nums[i]) return (y.nums[i] || 0) - (x.nums[i] || 0);
+          if (!x.pre && y.pre) return -1;
+          if (x.pre && !y.pre) return 1;
+          return x.pre < y.pre ? 1 : x.pre > y.pre ? -1 : 0;
+        });
+        const latest = full[0];
+        const mb = latest.Size ? ` (${(latest.Size / 1048576).toFixed(1)} MB)` : '';
+        document.getElementById('version').textContent = `Version ${latest.Version}${mb}`;
+      })
+      .catch(() => {
+        document.getElementById('version').textContent = 'Latest version';
+      });
+
+    // Show the portable link only when that file is actually published.
+    fetch('/manager/LakerProxyManager-win-Portable.zip', { method: 'HEAD', cache: 'no-store' })
+      .then(r => { if (r.ok) document.getElementById('portable').classList.remove('hidden'); })
+      .catch(() => {});
+  </script>
+</body>
+</html>

@@ -151,8 +151,10 @@ the background and offers a restart. Install it with
 https://download.lakerproxy.net/manager/LakerProxyManager-win-Setup.exe
 ```
 
-A portable zip (`LakerProxyManager-win-Portable.zip`) is published next to it for machines
-where nothing may be installed; the portable build does not self-update.
+The default build is framework-dependent: Setup.exe installs the .NET 10 desktop runtime when it
+is missing, which keeps the download around 11 MB. Releases can optionally include a portable zip
+(`LakerProxyManager-win-Portable.zip`) for machines where nothing may be installed; the portable
+build does not self-update.
 
 ## Configuration
 
@@ -289,11 +291,14 @@ The workflow needs two repository secrets to restore the `Lakerfield.*` packages
 ### Manager releases
 
 The **Release manager** workflow (`.github/workflows/release-manager.yaml`) publishes the manager
-for win-x64, packs it with `vpk`, signs it and uploads the Velopack feed to the S3 bucket behind
-`download.lakerproxy.net` under the `manager/` prefix. It downloads the previous releases first
-so Velopack can produce delta packages, keeps the last ten releases, and tags the commit as
-`manager-v<version>`. Server and manager versions may diverge; each workflow takes its own
-version input.
+for win-x64, packs it with `vpk`, signs it and uploads the Velopack feed to the S3 bucket that is
+served as `https://download.lakerproxy.net/manager/`. It downloads the previous releases first
+so Velopack can produce delta packages, keeps the last ten releases, and finally creates a GitHub
+Release tagged `manager-v<version>` with `LakerProxyManager-win-Setup.exe` (and the portable zip
+when built) attached. Installed managers keep updating from the S3 feed; the GitHub Release is
+for release notes and manual downloads. Server and manager versions may diverge; each workflow takes its own
+version input. Two optional checkboxes: **self_contained** bundles the .NET runtime (about
+140 MB instead of 11 MB) and **portable** adds the portable zip; both are off by default.
 
 The signing certificate lives on a SafeNet USB token, so this workflow runs on a self-hosted
 Windows runner (labels `self-hosted`, `windows`, `signing`) that is started in an interactive
@@ -304,10 +309,18 @@ session, not as a service, otherwise the PIN prompt never appears. One-time setu
    [Package feeds](#package-feeds)). The workflow installs `vpk` itself.
 3. SafeNet Authentication Client with the token inserted; note the certificate thumbprint.
 
-Repository variables: `S3_ENDPOINT`, `S3_BUCKET`, optional `S3_REGION`, and `SIGN_THUMBPRINT`
-(leave empty for an unsigned test build). Repository secrets: `S3_KEY_ID` and `S3_SECRET`.
+Repository variables: `S3_ENDPOINT` (the provider's S3 API endpoint, not the download domain),
+`S3_BUCKET`, optional `S3_PREFIX` (empty = bucket root), optional `S3_REGION`, and
+`SIGN_THUMBPRINT` (leave empty for an unsigned test build). Repository secrets: `S3_KEY_ID` and
+`S3_SECRET`. When `download.lakerproxy.net` exposes the storage account with the bucket name as
+first path segment, a bucket named `manager` with an empty prefix yields exactly the
+`https://download.lakerproxy.net/manager/` feed URL that `AppUpdater.cs` expects.
 Keep the `vpk` version in the workflow equal to the `Velopack` package version in
 `LakerProxy.ProxyPlayground.csproj`.
+
+`assets/download/index.html` is the landing page for `https://download.lakerproxy.net/`: upload it
+manually to the bucket root once (it is not part of the workflow). It links to the installer and
+reads the current version from `manager/releases.win.json`.
 
 Because the repository is public, restrict who can run workflows on the self-hosted runner:
 Settings → Actions → require approval for all outside collaborators, and keep this workflow on
