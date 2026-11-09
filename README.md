@@ -133,6 +133,44 @@ For unattended updates add a cron job, for example nightly:
 0 4 * * * /usr/local/bin/lakerproxy-update >> /var/log/lakerproxy-update.log 2>&1
 ```
 
+### DNS records
+
+The proxy server needs two records in your DNS zone, plus one record per website. The examples
+assume the server's machine name is `proxy1` and your zone is `example.com`.
+
+| Record | Type | Value | Purpose |
+| --- | --- | --- | --- |
+| `proxy1.example.com` | A (and AAAA) | public IP of the server | the server's own hostname; websites point here |
+| `acme.proxy1.example.com` | NS | `proxy1.example.com` | delegates the ACME challenge zone to the built-in DNS server |
+| `_acme-challenge.<website>` | CNAME | `<website-prefix>.acme.proxy1.example.com` | per website, only for `dns-01` (wildcards) |
+
+- **Server hostname.** On first start the server registers itself under its machine name
+  (`Environment.MachineName`) and uses that as `Hostname`; set the full name, for example
+  `proxy1.example.com`, in the manager's Servers tab. The manager's *Check DNS* compares every
+  website's A/AAAA records with the resolved addresses of its servers, so this record must exist.
+- **ACME challenge zone.** The server defaults its `AcmeChallengeZone` to `acme.<name>`. Create an
+  NS record for that zone pointing at the server hostname. Because the server answers the
+  delegated zone itself, UDP and TCP port 53 must be reachable from the internet and no other DNS
+  server may run on the machine. The NS target must resolve via an A record, not a CNAME.
+- **Websites with `http-01`** (single hostnames) need nothing more than their A/AAAA record to the
+  proxy. Validation happens over port 80.
+- **Websites with `dns-01`** (wildcard and wildcard-with-apex scopes) need one CNAME:
+  `_acme-challenge.<hostname>` → `<prefix>.<AcmeChallengeZone>`, where the prefix is the hostname
+  with dots replaced by dashes. For `*.shop.example.com` that is
+  `_acme-challenge.shop.example.com CNAME shop-example-com.acme.proxy1.example.com`. The manager
+  shows the exact name and value on the website's detail page with copy buttons once the website
+  is saved. The CNAME is permanent; the server publishes a fresh TXT record behind it for every
+  renewal.
+- A quick check from any machine:
+
+  ```bash
+  dig +short A proxy1.example.com
+  dig +short NS acme.proxy1.example.com
+  dig +short TXT shop-example-com.acme.proxy1.example.com @proxy1.example.com
+  ```
+
+  The last query returns nothing until a challenge is active, but it must not time out.
+
 Notes:
 
 - The service runs as an unprivileged user with `CAP_NET_BIND_SERVICE` for ports 80, 443 and 53.
