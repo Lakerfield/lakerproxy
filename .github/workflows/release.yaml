@@ -1,0 +1,107 @@
+name: Release server
+
+# Builds the proxy server for linux-x64 and publishes it as a GitHub Release
+# (tag v{version}). Servers install and update from these releases with
+# deploy/install.sh. The desktop manager is released separately (Velopack).
+#
+# Required repository secrets (Settings → Secrets and variables → Actions):
+#   LAKERFIELD_FEED_USER  username for the LakerfieldFeed NuGet source
+#   LAKERFIELD_FEED_PAT   read-only Azure DevOps PAT for that feed
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Semver of this release, e.g. 2.0.0 or 2.1.0-beta.1"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+env:
+  VERSION: ${{ inputs.version }}
+  ARTIFACT: lakerproxy-server-${{ inputs.version }}-linux-x64.tar.gz
+
+jobs:
+  server:
+    name: Build and release ${{ inputs.version }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate version and tag
+        run: |
+          set -euo pipefail
+          if ! [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then
+            echo "::error::'$VERSION' is not a valid semver (expected MAJOR.MINOR.PATCH[-prerelease])"
+            exit 1
+          fi
+          if git ls-remote --exit-code --tags origin "refs/tags/v$VERSION" >/dev/null 2>&1; then
+            echo "::error::tag v$VERSION already exists"
+            exit 1
+          fi
+          if [[ "$VERSION" == *-* ]]; then
+            echo "PRERELEASE=--prerelease" >> "$GITHUB_ENV"
+          else
+            echo "PRERELEASE=" >> "$GITHUB_ENV"
+          fi
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Configure LakerfieldFeed credentials
+        env:
+          FEED_USER: ${{ secrets.LAKERFIELD_FEED_USER }}
+          FEED_PAT: ${{ secrets.LAKERFIELD_FEED_PAT }}
+        run: |
+          set -euo pipefail
+          if [[ -z "$FEED_USER" || -z "$FEED_PAT" ]]; then
+            echo "::error::secrets LAKERFIELD_FEED_USER and LAKERFIELD_FEED_PAT are required to restore the Lakerfield.* packages"
+            exit 1
+          fi
+          # only touches the checked-out copy of nuget.config on the runner
+          dotnet nuget update source LakerfieldFeed \
+            --username "$FEED_USER" --password "$FEED_PAT" --store-password-in-clear-text \
+            --configfile nuget.config
+
+      - name: Publish
+        run: |
+          set -euo pipefail
+          dotnet publish src/LakerProxy.ProxyApp \
+            -c Release -r linux-x64 --self-contained \
+            -p:Version="$VERSION" \
+            -p:ContinuousIntegrationBuild=true \
+            -o out/server
+          echo "$VERSION" > out/server/version.txt
+          install -m 755 deploy/install.sh out/server/install.sh
+
+      - name: Package
+        run: |
+          set -euo pipefail
+          tar -czf "out/$ARTIFACT" -C out/server .
+          ( cd out && sha256sum "$ARTIFACT" > "$ARTIFACT.sha256" )
+          ls -la out/*.tar.gz out/*.sha256
+          cat "out/$ARTIFACT.sha256"
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh release create "v$VERSION" \
+            --target "$GITHUB_SHA" \
+            --title "LakerProxy Server $VERSION" \
+            --generate-notes \
+            $PRERELEASE \
+            "out/$ARTIFACT" "out/$ARTIFACT.sha256"

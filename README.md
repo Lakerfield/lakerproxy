@@ -82,6 +82,65 @@ dotnet run --project src/LakerProxy.ProxyPlayground   # run the manager (Windows
 
 Shared package versions are pinned in `Directory.Build.targets`.
 
+## Install on Ubuntu
+
+Server builds are published as [GitHub Releases](https://github.com/lakerfield/lakerproxy/releases)
+(`lakerproxy-server-<version>-linux-x64.tar.gz`, self-contained, no .NET runtime needed on the
+server). `deploy/install.sh` installs and updates from those releases on Ubuntu or Debian with
+systemd.
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/lakerfield/lakerproxy/master/deploy/install.sh | sudo bash
+```
+
+The first run creates the `lakerproxy` system user, downloads the latest release, verifies its
+SHA-256, installs the systemd unit and writes `/opt/lakerproxy/config/app-configuration.ini`.
+Edit that file (MongoDB connection string, `initial-admin-token`, `acme-mail`) and start the
+service:
+
+```bash
+sudo nano /opt/lakerproxy/config/app-configuration.ini
+sudo systemctl start lakerproxy
+sudo systemctl status lakerproxy
+```
+
+Layout on the server:
+
+```
+/opt/lakerproxy/
+  releases/<version>/             one directory per installed release
+  current -> releases/<version>   switched atomically on update
+  config/app-configuration.ini    your settings, survive updates
+/etc/systemd/system/lakerproxy.service
+/usr/local/bin/lakerproxy-update  copy of install.sh from the installed release
+```
+
+### Update, rollback, automation
+
+```bash
+sudo lakerproxy-update                   # update to the latest release
+sudo lakerproxy-update --check           # exit 0 = up to date, 10 = update available
+sudo lakerproxy-update --version 2.0.1   # install a specific release, also for rollback
+```
+
+An update downloads the release next to the current one, switches the `current` symlink,
+restarts the service and waits until the server answers on port 80. If it does not come up, the
+script switches back to the previous release and restarts it. The last three releases are kept.
+
+For unattended updates add a cron job, for example nightly:
+
+```
+0 4 * * * /usr/local/bin/lakerproxy-update >> /var/log/lakerproxy-update.log 2>&1
+```
+
+Notes:
+
+- The service runs as an unprivileged user with `CAP_NET_BIND_SERVICE` for ports 80, 443 and 53.
+- HTTP/3 needs `libmsquic` from the Microsoft package repository; without it the server serves
+  HTTP/1.1 and HTTP/2 only.
+- The script honours `LAKERPROXY_ROOT`, `LAKERPROXY_SERVICE`, `LAKERPROXY_USER` and
+  `LAKERPROXY_KEEP` environment variables for non-default locations.
+
 ## Configuration
 
 The server reads `src/LakerProxy/app-configuration.ini` (committed defaults) and layers
@@ -114,8 +173,9 @@ blocklist-allow-list=127.0.0.0/8 ::1 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16
 
 ## Getting started
 
-1. Start MongoDB and create `app-configuration-override.ini` with your connection string and a
-   long random `initial-admin-token`.
+1. Start MongoDB and create `app-configuration-override.ini` (development) or edit
+   `/opt/lakerproxy/config/app-configuration.ini` (installed server) with your connection string
+   and a long random `initial-admin-token`.
 2. Run the proxy server. On first start it registers itself as a `Server` document keyed by the
    machine name and creates the initial admin API user from the token.
 3. Enable the `Proxy` and `LetsEncrypt` services on that server (via the manager or the API) and
@@ -200,6 +260,20 @@ Zip from inside the output directory so the files land at the root of the archiv
    dispatch on `WebsiteKind` (proxy, redirect, static site, info, API, 404).
 5. **Certificates** — issued and renewed by a background service; PFX/PEM material is stored in
    the website document.
+
+## Releasing (maintainers)
+
+Server releases are built by the **Release server** workflow (`.github/workflows/release.yaml`):
+GitHub → Actions → Release server → *Run workflow*, enter the semver (for example `2.0.0`; a
+`-beta.1` suffix marks a pre-release). The workflow validates the version, publishes the server
+for linux-x64, packs it with `version.txt` and `install.sh`, writes a `.sha256` file, tags the
+commit as `v<version>` and creates the GitHub Release with generated notes. Servers pick it up
+with `lakerproxy-update`.
+
+The workflow needs two repository secrets to restore the `Lakerfield.*` packages:
+`LAKERFIELD_FEED_USER` and `LAKERFIELD_FEED_PAT` (a read-only Azure DevOps PAT).
+
+The desktop manager is distributed separately through Velopack and is not part of this workflow.
 
 ## Status
 

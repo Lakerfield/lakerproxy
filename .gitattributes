@@ -1,0 +1,5 @@
+# Files that run on Linux must stay LF regardless of the committer's
+# core.autocrlf setting. Everything else keeps the repository default (CRLF).
+*.sh    text eol=lf
+*.yml   text eol=lf
+*.yaml  text eol=lf
