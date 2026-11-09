@@ -1,0 +1,27 @@
+<Solution>
+  <Folder Name="/0 - Acme/">
+    <Project Path="E:\git\Lakerfield.Acme\src\Lakerfield.Acme\Lakerfield.Acme.csproj" />
+  </Folder>
+  <Folder Name="/0 - Api/">
+    <Project Path="src/LakerProxy.WebApi/LakerProxy.WebApi.csproj" />
+  </Folder>
+  <Folder Name="/0 - _Solution files/">
+    <File Path=".editorconfig" />
+    <File Path=".gitignore" />
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Build.targets" />
+    <File Path="nuget.config" />
+    <File Path="README.md" />
+  </Folder>
+  <Folder Name="/1 - Core/">
+    <Project Path="src/LakerProxy.Runtime/LakerProxy.Runtime.csproj" />
+    <Project Path="src/LakerProxy.Storage/LakerProxy.Storage.csproj" />
+    <Project Path="src/LakerProxy/LakerProxy.csproj" />
+  </Folder>
+  <Folder Name="/2 - Server/">
+    <Project Path="src/LakerProxy.ProxyApp/LakerProxy.ProxyApp.csproj" />
+  </Folder>
+  <Folder Name="/3 - UI/">
+    <Project Path="src/LakerProxy.ProxyPlayground/LakerProxy.ProxyPlayground.csproj" />
+  </Folder>
+</Solution>

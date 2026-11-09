@@ -1,0 +1,104 @@
+<UserControl x:Class="LakerProxy.ProxyPlayground.Views.WebsitesView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="clr-namespace:LakerProxy.ProxyPlayground.Controls"
+             MinHeight="200" MinWidth="300">
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="*"/>
+    </Grid.RowDefinitions>
+
+    <StackPanel Orientation="Horizontal">
+
+      <Button x:Name="Refresh" ToolTip="Refresh">
+        <Image Source="/Images/refresh32.png" Height="32" />
+      </Button>
+
+      <Button x:Name="New" ToolTip="New" Margin="8,0,0,0">
+        <Image Source="/Images/element_add32.png" Height="32" />
+      </Button>
+
+      <Button x:Name="Edit" ToolTip="Edit">
+        <Image Source="/Images/element_edit32.png" Height="32" />
+      </Button>
+
+      <Button x:Name="Copy" ToolTip="Copy">
+        <Image Source="/Images/element_copy32.png" Height="32" />
+      </Button>
+
+      <Button x:Name="Delete" ToolTip="Delete">
+        <Image Source="/Images/element_delete32.png" Height="32" />
+      </Button>
+
+      <Button x:Name="DownloadCertificate" ToolTip="DownloadCertificate" Margin="8,0,0,0">
+        <Image Source="/Images/cloud_computing_download.png" Height="32" />
+      </Button>
+
+    </StackPanel>
+
+    <DataGrid x:Name="ConnectionDataGrid" 
+              ItemsSource="{Binding Entities}" 
+              SelectedItem="{Binding SelectedEntity}" 
+              AutoGenerateColumns="False" 
+              CanUserAddRows="False"
+              IsReadOnly="True"
+              FontFamily="Consolas"
+              Grid.Row="1" 
+              SelectionChanged="ConnectionDataGridSelectionChanged"
+              Sorting="DataGridSorting"
+              MouseDoubleClick="ConnectionDataGridMouseDoubleClick">
+      <DataGrid.Resources>
+        <Style x:Key="CellRightAlign">
+          <Setter Property="Control.HorizontalAlignment"
+                  Value="Right" />
+        </Style>
+      </DataGrid.Resources>
+
+      <DataGrid.Columns>
+        <!--<DataGridTextColumn IsReadOnly="True" Header="Hostname" Binding="{Binding Entity.Hostname, Converter={StaticResource DomainExtensionFillConverter}}" CellStyle="{StaticResource CellRightAlign}"/>-->
+        <DataGridTemplateColumn Header="Hostname">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <TextBlock controls:TextBlockProperties.FormattedText="{Binding Entity.Hostname}" />
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+        <DataGridComboBoxColumn IsReadOnly="True" Header="Kind" SelectedValueBinding="{Binding Entity.Kind, Converter={StaticResource EnumListWebsiteKind}}" ItemsSource="{StaticResource EnumListWebsiteKind}" />
+        <DataGridTextColumn IsReadOnly="True" Header="Destination" Binding="{Binding Entity.Destination}"/>
+        <DataGridTextColumn IsReadOnly="True" Header="Servers" Binding="{Binding Entity.Servers, Converter={StaticResource StringsToCommaStringConverter}}" />
+        <DataGridComboBoxColumn IsReadOnly="True" Header="Certificate scope" SelectedValueBinding="{Binding Entity.Scope, Converter={StaticResource EnumListCertificateScope}}" ItemsSource="{StaticResource EnumListCertificateScope}" />
+        <DataGridTextColumn IsReadOnly="True" Header="CertificateInfo" Binding="{Binding CertificateInfo}">
+          <DataGridTextColumn.CellStyle>
+            <Style TargetType="DataGridCell">
+              <Setter Property="Foreground" Value="{Binding Entity, Converter={StaticResource CertificateToTextColorConverter}}"/>
+            </Style>
+          </DataGridTextColumn.CellStyle>
+        </DataGridTextColumn>
+        <DataGridTextColumn IsReadOnly="True" Header="Acme" Binding="{Binding Entity.AcmeAccount}"/>
+        <DataGridComboBoxColumn IsReadOnly="True" Header="Protocol" SelectedValueBinding="{Binding Entity.DestinationProtocol, Converter={StaticResource EnumListDestinationProtocol}}" ItemsSource="{StaticResource EnumListDestinationProtocol}" />
+        <DataGridTextColumn IsReadOnly="True" Header="Comments" Binding="{Binding Entity.Comments, Converter={StaticResource StringToCommaStringConverter}}"/>
+        <DataGridComboBoxColumn IsReadOnly="True" Header="Filter" SelectedValueBinding="{Binding Entity.Filter, Converter={StaticResource EnumListFilterKind}}" ItemsSource="{StaticResource EnumListFilterKind}" />
+        <DataGridTextColumn IsReadOnly="True" Header="FilterAcl" Binding="{Binding Entity.FilterAcl, Converter={StaticResource StringsToCommaStringConverter}}" />
+        <DataGridTextColumn IsReadOnly="True" Header="MaxReq" Binding="{Binding Entity.MaxRequestBodySize}" />
+        <DataGridTextColumn IsReadOnly="True" Header="Id" Binding="{Binding Entity.Id}" />
+      </DataGrid.Columns>
+
+      <!--<DataGrid.RowDetailsTemplate>
+        <DataTemplate>
+          <Grid>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="Auto"></ColumnDefinition>
+              <ColumnDefinition Width="*"></ColumnDefinition>
+            </Grid.ColumnDefinitions>
+
+            <controls:ObjectView DataContext="{Binding ObjectHierarchy}" HorizontalAlignment="Left" MinWidth="160" MaxHeight="320" Grid.Column="1"></controls:ObjectView>
+          </Grid>
+        </DataTemplate>
+      </DataGrid.RowDetailsTemplate>-->
+
+
+    </DataGrid>
+
+  </Grid>
+</UserControl>

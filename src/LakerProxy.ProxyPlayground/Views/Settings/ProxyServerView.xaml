@@ -1,0 +1,54 @@
+<Window x:Class="LakerProxy.ProxyPlayground.Views.Settings.ProxyServerView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Proxy settings" MinHeight="400" MinWidth="320" 
+        WindowStartupLocation="CenterOwner"
+        SizeToContent="WidthAndHeight">
+  <Grid Margin="8,0,8,8">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="*"/>
+      <RowDefinition Height="Auto"/>
+    </Grid.RowDefinitions>
+
+    <StackPanel>
+      <StackPanel IsEnabled="{Binding ProxyServer.Enabled}">
+
+        <TextBlock Text="Group" />
+        <ComboBox x:Name="ComboBoxGroep" Text="{Binding ProxyServer.Groep}" IsEditable="True">
+        </ComboBox>
+
+        <TextBlock Text="Description" Margin="0,8,0,0" />
+        <TextBox Text="{Binding ProxyServer.Omschrijving}"></TextBox>
+
+        <TextBlock Text="Url" Margin="0,8,0,0" />
+        <ComboBox x:Name="ComboBoxUrl" Text="{Binding ProxyServer.Url}" IsEditable="True">
+        </ComboBox>
+
+
+        <GroupBox Header="Options" Margin="0,8,0,0">
+          <StackPanel>
+            <TextBlock Text="Username" Margin="0,8,0,0" />
+            <TextBox Text="{Binding ProxyServer.Username}"></TextBox>
+
+            <TextBlock Text="Password" Margin="0,8,0,0" />
+            <TextBox Text="{Binding ProxyServer.Password}"></TextBox>
+          </StackPanel>
+        </GroupBox>
+
+        <TextBlock Text="Comments" Margin="0,8,0,0" />
+        <TextBox Text="{Binding ProxyServer.Comments}" AcceptsReturn="True"></TextBox>
+
+      </StackPanel>
+    </StackPanel>
+
+    <Grid Grid.Row="1" Height="24">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="*"/>
+        <ColumnDefinition Width="*"/>
+      </Grid.ColumnDefinitions>
+      <Button Name="Ok" Content="Ok" />
+      <Button Name="Cancel" Content="Cancel" Grid.Column="1" />
+    </Grid>
+
+  </Grid>
+</Window>

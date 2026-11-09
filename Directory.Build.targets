@@ -1,0 +1,18 @@
+<Project>
+  <ItemGroup>
+    <PackageReference Update="System.Reactive" Version="6.1.0" />
+
+    <PackageReference Update="Microsoft.Extensions.Configuration"                      Version="10.0.5" />
+    <PackageReference Update="Microsoft.Extensions.Configuration.CommandLine"          Version="10.0.5" />
+    <PackageReference Update="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="10.0.5" />
+    <PackageReference Update="Microsoft.Extensions.Configuration.Ini"                  Version="10.0.5" />
+
+    <PackageReference Update="Caliburn.Micro" Version="4.0.212" />
+    <PackageReference Update="Newtonsoft.Json" Version="13.0.3" />
+
+    <PackageReference Update="Lakerfield.Core"     Version="1.1.0" />
+    <PackageReference Update="Lakerfield.Reactive" Version="1.1.0" />
+    <PackageReference Update="Lakerfield.Storage"  Version="1.1.0" />
+    <PackageReference Update="Lakerfield.Runtime"  Version="1.1.0" />
+  </ItemGroup>
+</Project>

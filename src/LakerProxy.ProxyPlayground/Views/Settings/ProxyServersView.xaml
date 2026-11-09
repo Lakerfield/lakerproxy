@@ -1,0 +1,54 @@
+<Window x:Class="LakerProxy.ProxyPlayground.Views.Settings.ProxyServersView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        WindowStartupLocation="CenterOwner"
+        Title="Proxy servers" SizeToContent="WidthAndHeight" MinHeight="320" MinWidth="480">
+  <Grid Margin="8,0,8,8">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="*"/>
+    </Grid.RowDefinitions>
+
+    <StackPanel Orientation="Horizontal">
+
+      <Button x:Name="New" ToolTip="New">
+        <Image Source="/Images/element_add32.png" Height="32" />
+      </Button>
+      <!--- pack://application:,,,/Images/image.jpg -->
+
+      <Button x:Name="Edit" ToolTip="Edit">
+        <Image Source="/Images/element_edit32.png" Height="32" />
+      </Button>
+
+      <Button x:Name="Copy" ToolTip="Copy">
+        <Image Source="/Images/element_copy32.png" Height="32" />
+      </Button>
+
+      <Button x:Name="Delete" ToolTip="Delete">
+        <Image Source="/Images/element_delete32.png" Height="32" />
+      </Button>
+
+      <Button x:Name="Select" ToolTip="Select" Margin="8,0">
+        <Image Source="/Images/element_run32.png" Height="32" />
+      </Button>
+
+    </StackPanel>
+
+    <DataGrid x:Name="ConnectionDataGrid" 
+              ItemsSource="{Binding ProxyServers}" 
+              SelectedItem="{Binding SelectedProxyServer}" 
+              AutoGenerateColumns="False" 
+              CanUserAddRows="False"
+              IsReadOnly="True"
+              Grid.Row="1" 
+              MouseDoubleClick="ConnectionDataGridMouseDoubleClick">
+      <DataGrid.Columns>
+        <DataGridTextColumn Header="Groep" Binding="{Binding Groep}"></DataGridTextColumn>
+        <DataGridTextColumn Header="Omschrijving" Binding="{Binding Omschrijving}"></DataGridTextColumn>
+        <DataGridTextColumn Header="Username" Binding="{Binding Username}"></DataGridTextColumn>
+        <DataGridTextColumn Header="Url" Binding="{Binding Url}"></DataGridTextColumn>
+      </DataGrid.Columns>
+    </DataGrid>
+
+  </Grid>
+</Window>

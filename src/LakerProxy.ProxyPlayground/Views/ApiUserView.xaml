@@ -1,0 +1,60 @@
+<Window x:Class="LakerProxy.ProxyPlayground.Views.ApiUserView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="ApiUserView" MinHeight="480" MinWidth="360" 
+        WindowStartupLocation="CenterOwner"
+        SizeToContent="WidthAndHeight">
+  <Grid Margin="8,0,8,8">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="*"/>
+      <RowDefinition Height="Auto"/>
+    </Grid.RowDefinitions>
+
+    <StackPanel>
+      <StackPanel>
+
+        <TextBlock Text="Name" />
+        <TextBox Text="{Binding Entity.Name}"></TextBox>
+
+        <TextBlock Text="Rights" Margin="0,8,0,0"></TextBlock>
+        <ComboBox SelectedValue="{Binding Entity.Rights, Converter={StaticResource EnumListApiUserRights}}" ItemsSource="{StaticResource EnumListApiUserRights}"/>
+
+        <TextBlock Text="Hostname" Margin="0,8,0,0" />
+        <TextBox Text="{Binding Entity.Hostname}"></TextBox>
+
+        <TextBlock Text="Server" Margin="0,8,0,0" />
+        <TextBox Text="{Binding Entity.Server}"></TextBox>
+
+        <TextBlock Text="ApiKey" Margin="0,8,0,0" />
+        <Grid>
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"></ColumnDefinition>
+            <ColumnDefinition Width="Auto"></ColumnDefinition>
+          </Grid.ColumnDefinitions>
+          <TextBox Text="{Binding Entity.ApiKey}"></TextBox>
+          <Button Grid.Column="1" Name="GenerateApiKey" Content="Generate" Padding="4,2" />
+        </Grid>
+
+        <TextBlock Text="Certificate" Margin="0,8,0,0" />
+        <ComboBox SelectedValue="{Binding Entity.Certificate, Converter={StaticResource EnumListCertificateKind}}" ItemsSource="{StaticResource EnumListCertificateKind}"/>
+
+        <TextBlock Text="AcmeAccount" Margin="0,8,0,0" />
+        <TextBox Text="{Binding Entity.AcmeAccount}"></TextBox>
+
+        <TextBlock Text="Comments" Margin="0,8,0,0" />
+        <TextBox Text="{Binding Entity.Comments}" AcceptsReturn="True"></TextBox>
+
+      </StackPanel>
+    </StackPanel>
+
+    <Grid Grid.Row="1" Height="24">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="*"/>
+        <ColumnDefinition Width="*"/>
+      </Grid.ColumnDefinitions>
+      <Button Name="Ok" Content="Ok" />
+      <Button Name="Cancel" Content="Cancel" Grid.Column="1" />
+    </Grid>
+
+  </Grid>
+</Window>

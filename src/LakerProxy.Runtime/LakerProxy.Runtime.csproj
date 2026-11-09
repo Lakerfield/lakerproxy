@@ -1,0 +1,27 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>LakerProxy</RootNamespace>
+    <Product>LakerProxy</Product>
+    <Company>Lakerfield B.V.</Company>
+    <Authors>Michael Lakerveld</Authors>
+    <Copyright>Lakerfield B.V.</Copyright>
+    <RepositoryUrl>https://github.com/lakerfield/lakerproxy</RepositoryUrl>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Lakerfield.Runtime" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.CommandLine" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Ini" />
+    <PackageReference Include="System.Reactive" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\LakerProxy.Storage\LakerProxy.Storage.csproj" />
+    <ProjectReference Include="..\LakerProxy\LakerProxy.csproj" />
+  </ItemGroup>
+
+</Project>

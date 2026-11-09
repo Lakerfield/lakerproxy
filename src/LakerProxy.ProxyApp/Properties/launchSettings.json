@@ -1,0 +1,11 @@
+{
+  "profiles": {
+    "LakerProxy.ProxyApp": {
+      "commandName": "Project",
+      "externalUrlConfiguration": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+    }
+  }
+}

@@ -1,0 +1,48 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows7.0</TargetFramework>
+    <Authors>Michael Lakerveld</Authors>
+    <Company>Lakerfield B.V.</Company>
+    <Product>Proxy Manager</Product>
+    <Copyright>Lakerfield B.V.</Copyright>
+    <RepositoryUrl>https://github.com/lakerfield/lakerproxy</RepositoryUrl>
+    <LangVersion>latest</LangVersion>
+    <UseWPF>true</UseWPF>
+    <ApplicationIcon>server_earth.ico</ApplicationIcon>
+    <AssemblyName>LakerProxyManager</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Resource Include="Images\*.*" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Caliburn.Micro" />
+    <PackageReference Include="Newtonsoft.Json" />
+    <PackageReference Include="System.Reactive" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\LakerProxy.WebApi\LakerProxy.WebApi.csproj" />
+  </ItemGroup>
+
+	<ItemGroup>
+    <Page Update="Views\ApiUsersView.xaml">
+      <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\WebsitesView.xaml">
+      <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
+    </Page>
+    <Page Update="Views\ApiUserView.xaml">
+      <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\WebsiteView.xaml">
+      <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
+    </Page>
+  </ItemGroup>
+
+</Project>

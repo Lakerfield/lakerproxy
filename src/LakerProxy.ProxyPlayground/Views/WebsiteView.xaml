@@ -1,0 +1,73 @@
+<Window x:Class="LakerProxy.ProxyPlayground.Views.WebsiteView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="clr-namespace:LakerProxy.ProxyPlayground.Controls"
+        Title="Website settings" MinHeight="480" MinWidth="360" 
+        WindowStartupLocation="CenterOwner"
+        SizeToContent="WidthAndHeight">
+  <Grid Margin="8,0,8,8">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="*"/>
+      <RowDefinition Height="Auto"/>
+    </Grid.RowDefinitions>
+
+    <StackPanel>
+      <StackPanel>
+        <TextBlock controls:TextBlockProperties.FormattedText="{Binding Entity.Hostname}" 
+                   FontFamily="Consolas" FontSize="20" 
+                   Margin="4,4,0,8" />
+
+        <TextBlock Text="Kind"></TextBlock>
+        <ComboBox SelectedValue="{Binding Entity.Kind, Converter={StaticResource EnumListWebsiteKind}}" ItemsSource="{StaticResource EnumListWebsiteKind}"/>
+
+        <TextBlock Text="Hostname" Margin="0,8,0,0" />
+        <TextBox Text="{Binding Entity.Hostname}"></TextBox>
+
+        <CheckBox IsChecked="{Binding Entity.Fallback}" Margin="0,8,0,0">Fallback</CheckBox>
+
+        <TextBlock Margin="0,8,0,0">Certificate</TextBlock>
+        <ComboBox SelectedValue="{Binding Entity.Scope, Converter={StaticResource EnumListCertificateScope}}" ItemsSource="{StaticResource EnumListCertificateScope}"/>
+
+        <TextBlock Margin="0,8,0,0">Certificate</TextBlock>
+        <ComboBox SelectedValue="{Binding Entity.Certificate, Converter={StaticResource EnumListCertificateKind}}" ItemsSource="{StaticResource EnumListCertificateKind}"/>
+
+        <CheckBox IsChecked="{Binding Entity.ForceRenew}">Force renew certificate</CheckBox>
+
+        <TextBlock Text="Destination" Margin="0,8,0,0" />
+        <TextBox Text="{Binding Entity.Destination}"></TextBox>
+
+        <TextBlock Text="Protocol" Margin="0,8,0,0"></TextBlock>
+        <ComboBox SelectedValue="{Binding Entity.DestinationProtocol, Converter={StaticResource EnumListDestinationProtocol}}" ItemsSource="{StaticResource EnumListDestinationProtocol}"/>
+
+        <TextBlock Text="Servers" Margin="0,8,0,0" />
+        <TextBox AcceptsReturn="True" TextWrapping="Wrap" Text="{Binding Entity.Servers, Mode=TwoWay, Converter={StaticResource StringsToMultiLineConverter}}"></TextBox>
+
+        <TextBlock Text="Filter" Margin="0,8,0,0" />
+        <ComboBox SelectedValue="{Binding Entity.Filter, Converter={StaticResource EnumListFilterKind}}" ItemsSource="{StaticResource EnumListFilterKind}"/>
+        <TextBox AcceptsReturn="True" TextWrapping="Wrap" Text="{Binding Entity.FilterAcl, Mode=TwoWay, Converter={StaticResource StringsToMultiLineConverter}}"></TextBox>
+        <TextBlock Text="Filter redirect destination" Margin="0,8,0,0" />
+        <TextBox Text="{Binding Entity.FilterDestination}"></TextBox>
+
+        <TextBlock Text="AcmeAccount" Margin="0,8,0,0" />
+        <TextBox Text="{Binding Entity.AcmeAccount}"></TextBox>
+
+        <TextBlock Text="Max request body size" Margin="0,8,0,0" />
+        <TextBox Text="{Binding Entity.MaxRequestBodySize}" ToolTip="Leave empty or type 'default' for the default 30MB limit. Use values like '120KB', '5MB', or '128MB' (max)."></TextBox>
+
+        <TextBlock Text="Comments" Margin="0,8,0,0" />
+        <TextBox Text="{Binding Entity.Comments}" AcceptsReturn="True"></TextBox>
+
+      </StackPanel>
+    </StackPanel>
+
+    <Grid Grid.Row="1" Height="24">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="*"/>
+        <ColumnDefinition Width="*"/>
+      </Grid.ColumnDefinitions>
+      <Button Name="Ok" Content="Ok" />
+      <Button Name="Cancel" Content="Cancel" Grid.Column="1" />
+    </Grid>
+
+  </Grid>
+</Window>

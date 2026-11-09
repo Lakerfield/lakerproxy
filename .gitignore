@@ -396,3 +396,8 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+
+
+# Lakerproxy specific
+app-configuration-override.ini
+appsettings.Development.json

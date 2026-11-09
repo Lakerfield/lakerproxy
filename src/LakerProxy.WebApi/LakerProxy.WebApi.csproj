@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>LakerProxy.WebApi</RootNamespace>
+    <Product>LakerProxy</Product>
+    <Company>Lakerfield B.V.</Company>
+    <Authors>Michael Lakerveld</Authors>
+    <Copyright>Lakerfield B.V.</Copyright>
+    <RepositoryUrl>https://github.com/lakerfield/lakerproxy</RepositoryUrl>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <DefineConstants>TRACE;WEBAPI</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\LakerProxy\Constants.Shared.cs" Link="Constants.Shared.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
+  </ItemGroup>
+
+</Project>

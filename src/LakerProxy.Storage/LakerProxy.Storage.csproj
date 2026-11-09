@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>LakerProxy</RootNamespace>
+    <Product>LakerProxy</Product>
+    <Company>Lakerfield B.V.</Company>
+    <Authors>Michael Lakerveld</Authors>
+    <Copyright>Lakerfield B.V.</Copyright>
+    <RepositoryUrl>https://github.com/lakerfield/lakerproxy</RepositoryUrl>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Lakerfield.Storage" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="E:\git\Lakerfield.Acme\src\Lakerfield.Acme\Lakerfield.Acme.csproj" />
+    <ProjectReference Include="..\LakerProxy\LakerProxy.csproj" />
+  </ItemGroup>
+
+</Project>
