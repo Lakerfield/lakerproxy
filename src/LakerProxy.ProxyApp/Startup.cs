@@ -265,8 +265,9 @@ namespace LakerProxy.ProxyApp
 
       app.Run(async context =>
       {
+        context.Response.StatusCode = 404;
 #if DEBUG
-        await context.Response.CompleteWithTextAsync($"Proxy server alive. No upstream configured. Timestamp={DateTime.Now:O}; Host={Environment.MachineName}; GitHash={EnvironmentHelper.GitHash}");
+        await context.Response.CompleteWithTextAsync($"404 - Proxy server alive. No upstream configured. Timestamp={DateTime.Now:O}; Host={Environment.MachineName}; GitHash={EnvironmentHelper.GitHash}");
 #else
         await context.Response.CompleteWithTextAsync($"Proxy server alive. No upstream configured. Timestamp={DateTime.Now:O}; Host={Environment.MachineName}");
 #endif
