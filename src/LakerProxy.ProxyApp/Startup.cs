@@ -228,23 +228,20 @@ namespace LakerProxy.ProxyApp
 
         (WebsiteKind.NotFound, async (context) => {
             context.Response.StatusCode = 404;
-            await context.Response.WriteAsync("404 - The requested page or endpoint could not be found.");
+            await context.Response.CompleteWithTextAsync("404 - The requested page or endpoint could not be found.");
           }),
 
         (WebsiteKind.Offline, async (context) => {
             context.Response.StatusCode = 404;
-            await context.Response.WriteAsync("404 - The requested page or endpoint could not be found.");
+            await context.Response.CompleteWithTextAsync("404 - The requested page or endpoint could not be found.");
           }),
 
         (WebsiteKind.Info, async (context) => {
-            //await context.Response.WriteAsync("<html><body><h1>Uw ip adres is: ");
-            await context.Response.WriteAsync($"{context.Connection?.RemoteIpAddress?.ToString().Replace("::ffff:", "")}");
-            //await context.Response.WriteAsync("</h1></body></html>");
+            await context.Response.CompleteWithTextAsync($"{context.Connection?.RemoteIpAddress?.ToString().Replace("::ffff:", "")}");
           }),
 
         (WebsiteKind.InfoExtended, async (context) => {
-            await context.Response.WriteAsync($"Hello {context.Connection?.RemoteIpAddress?.ToString().Replace("::ffff:", "")} the proxy server is alive. Timestamp={DateTime.Now:O}; Host={Environment.MachineName}; GitHash={EnvironmentHelper.GitHash}");
-            //await context.Response.WriteAsync($"Hello {context.Connection?.RemoteIpAddress?.ToString().Replace("::ffff:", "") ?? "World"} through a Proxy! It is {DateTime.Now.ToString("O")} @ {Environment.MachineName} running on version {Environment.Version} and sdk {System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription} ({System.Runtime.InteropServices.RuntimeInformation.RuntimeIdentifier}) from git {EnvironmentHelper.GitHash}");
+            await context.Response.CompleteWithTextAsync($"Hello {context.Connection?.RemoteIpAddress?.ToString().Replace("::ffff:", "")} the proxy server is alive. Timestamp={DateTime.Now:O}; Host={Environment.MachineName}; GitHash={EnvironmentHelper.GitHash}");
           })
       );
 
@@ -269,9 +266,9 @@ namespace LakerProxy.ProxyApp
       app.Run(async context =>
       {
 #if DEBUG
-        await context.Response.WriteAsync($"Proxy server alive. No upstream configured. Timestamp={DateTime.Now:O}; Host={Environment.MachineName}; GitHash={EnvironmentHelper.GitHash}");
+        await context.Response.CompleteWithTextAsync($"Proxy server alive. No upstream configured. Timestamp={DateTime.Now:O}; Host={Environment.MachineName}; GitHash={EnvironmentHelper.GitHash}");
 #else
-        await context.Response.WriteAsync($"Proxy server alive. No upstream configured. Timestamp={DateTime.Now:O}; Host={Environment.MachineName}");
+        await context.Response.CompleteWithTextAsync($"Proxy server alive. No upstream configured. Timestamp={DateTime.Now:O}; Host={Environment.MachineName}");
 #endif
       });
 

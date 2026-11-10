@@ -42,8 +42,8 @@ namespace LakerProxy.ProxyApp.Yarp
 
           if (!string.IsNullOrWhiteSpace(challenge))
           {
-            //context.Response.ContentType = "text/plain";
-            await context.Response.WriteAsync(challenge);
+            // RFC 8555 8.3: the ACME server ignores Content-Type, so none is sent
+            await context.Response.CompleteWithTextAsync(challenge, contentType: null);
           }
           else
             context.Response.StatusCode = 404;
