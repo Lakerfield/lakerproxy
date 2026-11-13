@@ -141,7 +141,7 @@ jobs:
             "--mainExe", "$env:PACK_ID.exe",
             "--packTitle", "LakerProxy Manager",
             "--packAuthors", "Lakerfield B.V.",
-            "--icon", (Join-Path $PWD "src/LakerProxy.ProxyPlayground/server_earth.ico"),
+            "--icon", (Join-Path $PWD "src/LakerProxy.ProxyPlayground/lakerproxy.ico"),
             "--channel", $env:CHANNEL,
             "--runtime", "win-x64",
             "-o", (Join-Path $PWD "out/releases"))

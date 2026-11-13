@@ -10,13 +10,8 @@
 
     <StackPanel Orientation="Horizontal">
 
-      <ToggleButton IsChecked="{Binding Paused}" ToolTip="Pause (buffer incoming entries)">
-        <Image Source="/Images/media_stop_red32.png" Height="32" />
-      </ToggleButton>
-
-      <Button x:Name="Clear" ToolTip="Clear list" Margin="8,0,0,0">
-        <Image Source="/Images/garbage_empty32.png" Height="32" />
-      </Button>
+      <ToggleButton IsChecked="{Binding Paused}" Style="{StaticResource IconButton}" Content="{StaticResource Icon.Pause}" ToolTip="Pause (buffer incoming entries)" />
+      <Button x:Name="Clear" Style="{StaticResource IconButton}" Content="{StaticResource Icon.Eraser}" ToolTip="Clear list" Margin="8,0,0,0" />
 
       <TextBlock Text="Level:" VerticalAlignment="Center" Margin="16,0,4,0" />
       <ComboBox ItemsSource="{Binding Levels}" SelectedItem="{Binding MinimumLevel}" Width="90" VerticalAlignment="Center" />

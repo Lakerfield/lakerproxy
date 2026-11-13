@@ -357,8 +357,9 @@ Keep the `vpk` version in the workflow equal to the `Velopack` package version i
 `LakerProxy.ProxyPlayground.csproj`.
 
 `assets/download/index.html` is the landing page for `https://download.lakerproxy.net/`: upload it
-manually to the bucket root once (it is not part of the workflow). It links to the installer and
-reads the current version from `manager/releases.win.json`.
+together with `assets/download/favicon.ico` manually to the bucket root once (they are not part of
+the workflow). The page links to the installer and reads the current version from
+`manager/releases.win.json`. The favicon is a copy of the manager's `lakerproxy.ico`.
 
 Because the repository is public, restrict who can run workflows on the self-hosted runner:
 Settings → Actions → require approval for all outside collaborators, and keep this workflow on

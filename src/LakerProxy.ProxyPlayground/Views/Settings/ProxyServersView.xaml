@@ -11,26 +11,12 @@
 
     <StackPanel Orientation="Horizontal">
 
-      <Button x:Name="New" ToolTip="New">
-        <Image Source="/Images/element_add32.png" Height="32" />
-      </Button>
-      <!--- pack://application:,,,/Images/image.jpg -->
+      <Button x:Name="New" Style="{StaticResource IconButton}" Content="{StaticResource Icon.Add}" ToolTip="New" />
+      <Button x:Name="Edit" Style="{StaticResource IconButton}" Content="{StaticResource Icon.Edit}" ToolTip="Edit" />
+      <Button x:Name="Copy" Style="{StaticResource IconButton}" Content="{StaticResource Icon.Copy}" ToolTip="Copy" />
+      <Button x:Name="Delete" Style="{StaticResource DangerIconButton}" Content="{StaticResource Icon.Delete}" ToolTip="Delete" />
 
-      <Button x:Name="Edit" ToolTip="Edit">
-        <Image Source="/Images/element_edit32.png" Height="32" />
-      </Button>
-
-      <Button x:Name="Copy" ToolTip="Copy">
-        <Image Source="/Images/element_copy32.png" Height="32" />
-      </Button>
-
-      <Button x:Name="Delete" ToolTip="Delete">
-        <Image Source="/Images/element_delete32.png" Height="32" />
-      </Button>
-
-      <Button x:Name="Select" ToolTip="Select" Margin="8,0">
-        <Image Source="/Images/element_run32.png" Height="32" />
-      </Button>
+      <Button x:Name="Select" Style="{StaticResource IconButton}" Content="{StaticResource Icon.CheckmarkCircle}" ToolTip="Select" Margin="8,0" />
 
     </StackPanel>
 

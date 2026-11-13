@@ -10,21 +10,10 @@
 
     <StackPanel Orientation="Horizontal">
 
-      <Button x:Name="Refresh" ToolTip="Refresh">
-        <Image Source="/Images/refresh32.png" Height="32" />
-      </Button>
-
-      <Button x:Name="New" ToolTip="New" Margin="8,0,0,0">
-        <Image Source="/Images/element_add32.png" Height="32" />
-      </Button>
-
-      <Button x:Name="Edit" ToolTip="Edit">
-        <Image Source="/Images/element_edit32.png" Height="32" />
-      </Button>
-
-      <Button x:Name="Copy" ToolTip="Copy">
-        <Image Source="/Images/element_copy32.png" Height="32" />
-      </Button>
+      <Button x:Name="Refresh" Style="{StaticResource IconButton}" Content="{StaticResource Icon.ArrowSync}" ToolTip="Refresh" />
+      <Button x:Name="New" Style="{StaticResource IconButton}" Content="{StaticResource Icon.Add}" ToolTip="New" Margin="8,0,0,0" />
+      <Button x:Name="Edit" Style="{StaticResource IconButton}" Content="{StaticResource Icon.Edit}" ToolTip="Edit" />
+      <Button x:Name="Copy" Style="{StaticResource IconButton}" Content="{StaticResource Icon.Copy}" ToolTip="Copy" />
 
     </StackPanel>
 

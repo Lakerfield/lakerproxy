@@ -17,43 +17,22 @@
 
     <StackPanel Orientation="Horizontal">
 
-      <Button x:Name="Connect" ToolTip="Connect to proxy server">
-        <Image Source="/Images/plug_add32.png" Height="32" />
-      </Button>
+      <Button x:Name="Connect" Style="{StaticResource IconButton}" Content="{StaticResource Icon.PlugConnected}" ToolTip="Connect to proxy server" />
 
       <TextBlock Text="{Binding ConnectedServerName}" VerticalAlignment="Center" FontWeight="Bold" Margin="4,0,8,0" />
 
-      <Button x:Name="OpenWebsites" ToolTip="Open websites from connected proxy server" Margin="16,0,0,0">
-        <Image Source="/Images/server_edit.png" Height="32" />
-      </Button>
+      <Button x:Name="OpenWebsites" Style="{StaticResource IconButton}" Content="{StaticResource Icon.Globe}" ToolTip="Open websites from connected proxy server" Margin="16,0,0,0" />
+      <Button x:Name="OpenUsers" Style="{StaticResource IconButton}" Content="{StaticResource Icon.People}" ToolTip="Open users from connected proxy server" />
+      <Button x:Name="OpenServers" Style="{StaticResource IconButton}" Content="{StaticResource Icon.Server}" ToolTip="Open servers from connected proxy server" />
+      <Button x:Name="OpenAcmeAccounts" Style="{StaticResource IconButton}" Content="{StaticResource Icon.Key}" ToolTip="Open acme accounts from connected proxy server" />
+      <Button x:Name="OpenLogs" Style="{StaticResource IconButton}" Content="{StaticResource Icon.TextBulletListSquare}" ToolTip="Open live logs from connected proxy server" />
+      <Button x:Name="OpenAcmeLogs" Style="{StaticResource IconButton}" Content="{StaticResource Icon.DocumentBulletList}" ToolTip="Open live acme logs from connected proxy server" />
 
-      <Button x:Name="OpenUsers" ToolTip="Open users from connected proxy server">
-        <Image Source="/Images/users3_edit.png" Height="32" />
-      </Button>
-
-      <Button x:Name="OpenServers" ToolTip="Open servers from connected proxy server">
-        <Image Source="/Images/server_into.png" Height="32" />
-      </Button>
-
-      <Button x:Name="OpenAcmeAccounts" ToolTip="Open acme accounts from connected proxy server">
-        <Image Source="/Images/preferences32.png" Height="32" />
-      </Button>
-
-      <Button x:Name="OpenLogs" ToolTip="Open live logs from connected proxy server">
-        <Image Source="/Images/document.png" Height="32" />
-      </Button>
-
-      <Button x:Name="OpenAcmeLogs" ToolTip="Open live acme logs from connected proxy server">
-        <Image Source="/Images/cloud_computing_download.png" Height="32" />
-      </Button>
-
-      <Button x:Name="OpenSettingsFile" ToolTip="Open app settings file in notepad" Margin="8,0,0,0">
-        <Image Source="/Images/document_down.png" Height="32" />
-      </Button>
+      <Button x:Name="OpenSettingsFile" Style="{StaticResource IconButton}" Content="{StaticResource Icon.Settings}" ToolTip="Open app settings file in notepad" Margin="8,0,0,0" />
 
     </StackPanel>
 
-    <views:AppVersion Grid.Row="0" Grid.Column="1" Margin="8"></views:AppVersion>
+    <views:AppVersion Grid.Row="0" Grid.Column="1" Margin="8,0" VerticalAlignment="Center"></views:AppVersion>
 
     <TabControl x:Name="Items" SelectedItem="{Binding SelectedTab}" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2">
       <TabControl.ItemTemplate>

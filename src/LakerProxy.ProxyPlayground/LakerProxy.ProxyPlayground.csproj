@@ -10,7 +10,7 @@
     <RepositoryUrl>https://github.com/lakerfield/lakerproxy</RepositoryUrl>
     <LangVersion>latest</LangVersion>
     <UseWPF>true</UseWPF>
-    <ApplicationIcon>server_earth.ico</ApplicationIcon>
+    <ApplicationIcon>lakerproxy.ico</ApplicationIcon>
     <AssemblyName>LakerProxyManager</AssemblyName>
     <!-- Velopack must run before WPF starts, so App.xaml.cs has its own Main (see App.xaml.cs) -->
     <StartupObject>LakerProxy.ProxyPlayground.App</StartupObject>
@@ -19,10 +19,6 @@
   <ItemGroup>
     <ApplicationDefinition Remove="App.xaml" />
     <Page Include="App.xaml" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Resource Include="Images\*.*" />
   </ItemGroup>
 
   <ItemGroup>
