@@ -1,4 +1,6 @@
 name: Release server
+# title of each run in the Actions overview, e.g. "Build and publish server v0.3.0"
+run-name: Build and publish server v${{ inputs.version }}
 
 # Builds the proxy server for linux-x64 and publishes it as a GitHub Release
 # (tag v{version}). Servers install and update from these releases with

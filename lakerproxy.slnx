@@ -4,6 +4,8 @@
   </Folder>
   <Folder Name="/0 - _Solution files/">
     <File Path=".editorconfig" />
+    <File Path=".github/workflows/release.yaml" />
+    <File Path=".github/workflows/release-manager.yaml" />
     <File Path=".gitignore" />
     <File Path="Directory.Build.props" />
     <File Path="Directory.Build.targets" />
