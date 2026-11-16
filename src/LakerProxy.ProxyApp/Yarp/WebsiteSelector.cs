@@ -40,6 +40,31 @@ namespace LakerProxy.ProxyApp.Yarp
         .UseAcmeServerCertificate()
         .MapWhen(context =>
         {
+          // DomainWithWww
+          if (!context.Request.Host.Host.StartsWith("www.", StringComparison.OrdinalIgnoreCase))
+            return false;
+
+          var website = context.GetWebsite();
+          if (website == null)
+            return false;
+
+          if (website.Website.Scope == CertificateScope.DomainWithWww)
+            return false;
+
+          return !string.Equals(context.Request.Host.Host, website.Hostname, StringComparison.OrdinalIgnoreCase);
+        }, subApp =>
+        {
+          subApp.Run(context =>
+          {
+            var website = context.GetWebsite();
+            var scheme = context.Request.IsHttps || website.ActiveCertificate != null ? "https" : "http";
+            var request = context.Request;
+            context.Response.Redirect($"{scheme}://{website.Hostname}{request.PathBase}{request.Path}{request.QueryString}", permanent: true);
+            return Task.CompletedTask;
+          });
+        })
+        .MapWhen(context =>
+        {
           if (context.Request.IsHttps)
             return false;
 
