@@ -173,7 +173,7 @@ namespace LakerProxy.ProxyPlayground.Tools.DnsCheck
     {
       get
       {
-        var suffix = IsWildcard ? " (wildcard)" : "";
+        var suffix = IsWildcard ? " (wildcard)" : Scope == CertificateScope.DomainWithWww ? " (+www)" : "";
         switch (Status)
         {
           case DnsCheckStatus.NotChecked:

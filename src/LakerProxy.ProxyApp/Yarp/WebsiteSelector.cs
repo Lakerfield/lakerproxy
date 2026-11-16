@@ -161,6 +161,7 @@ namespace LakerProxy.ProxyApp.Yarp
 
     private List<WebsiteWithCertificate> _allWebsites;
     private List<WebsiteWithCertificate> _wildcardWebsites;
+    private Dictionary<string, WebsiteWithCertificate> _wwwWebsites;
     private ReaderWriterLockSlim _websitesLock;
     private TaskCompletionSource<bool> _websitesLoaded;
 
@@ -169,6 +170,7 @@ namespace LakerProxy.ProxyApp.Yarp
       _services = services;
       _allWebsites = new List<WebsiteWithCertificate>();
       _wildcardWebsites = new List<WebsiteWithCertificate>();
+      _wwwWebsites = new Dictionary<string, WebsiteWithCertificate>();
       _websitesLock = new ReaderWriterLockSlim();
       _websitesLoaded = new TaskCompletionSource<bool>();
 
@@ -186,6 +188,10 @@ namespace LakerProxy.ProxyApp.Yarp
 
         _wildcardWebsites.Clear();
         _wildcardWebsites.AddRange(_allWebsites.Where(w => w.Website.Scope is CertificateScope.Wildcard or CertificateScope.WildcardWithApex));
+
+        _wwwWebsites.Clear();
+        foreach (var website in _allWebsites.Where(w => w.Website.Scope == CertificateScope.DomainWithWww))
+          _wwwWebsites.TryAdd($"www.{website.Hostname}", website);
       }
       finally
       {
@@ -218,6 +224,9 @@ namespace LakerProxy.ProxyApp.Yarp
         var direct = _allWebsites.FirstOrDefault(w => w.Hostname == hostname);
         if (direct != null)
           return direct;
+
+        if (_wwwWebsites.TryGetValue(hostname, out var www))
+          return www;
 
         //TODO: check of ook only 1 label and no more
         var wildcard = _wildcardWebsites.FirstOrDefault(w => hostname.EndsWith($".{w.Hostname}"));

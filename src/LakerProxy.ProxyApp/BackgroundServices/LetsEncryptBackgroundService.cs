@@ -59,7 +59,7 @@ namespace LakerProxy.ProxyApp.BackgroundServices
         
         var allWebsites = await _services.Website().GetAll();
         var websites = allWebsites.Where(w =>
-          w.Scope is CertificateScope.SingleDomain or CertificateScope.Wildcard or CertificateScope.WildcardWithApex &&
+          w.Scope is CertificateScope.SingleDomain or CertificateScope.Wildcard or CertificateScope.WildcardWithApex or CertificateScope.DomainWithWww &&
           w.PrimaryServer == Program.Server.Id &&
           !string.Equals(w.Hostname, "localhost", StringComparison.OrdinalIgnoreCase)).ToArray();
         await WriteLog("", "", $"certificate check started for {websites.Length} of {allWebsites.Count}");

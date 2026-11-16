@@ -37,6 +37,9 @@ namespace LakerProxy.ProxyApp.Yarp
         case CertificateScope.WildcardWithApex:
           return [hostname, $"*.{hostname}"];
 
+        case CertificateScope.DomainWithWww:
+          return [hostname, $"www.{hostname}"];
+
         default:
           throw new ArgumentOutOfRangeException(nameof(scope), _context.Website.Scope, "Unknown certificate scope");
       }

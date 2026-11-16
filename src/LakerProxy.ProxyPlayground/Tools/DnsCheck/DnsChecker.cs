@@ -79,6 +79,8 @@ namespace LakerProxy.ProxyPlayground.Tools.DnsCheck
           return new[] { $"{probeLabel}.{hostname}" };
         case CertificateScope.WildcardWithApex:
           return new[] { $"{probeLabel}.{hostname}", hostname };
+        case CertificateScope.DomainWithWww:
+          return new[] { hostname, $"www.{hostname}" };
         default:
           return new[] { hostname };
       }

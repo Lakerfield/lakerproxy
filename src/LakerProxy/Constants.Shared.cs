@@ -37,6 +37,7 @@ namespace LakerProxy
     SingleDomain,
     Wildcard,
     WildcardWithApex,
+    DomainWithWww,
   }
 
   public enum AcmeChallengeType

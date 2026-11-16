@@ -153,7 +153,9 @@ assume the server's machine name is `proxy1` and your zone is `example.com`.
   delegated zone itself, UDP and TCP port 53 must be reachable from the internet and no other DNS
   server may run on the machine. The NS target must resolve via an A record, not a CNAME.
 - **Websites with `http-01`** (single hostnames) need nothing more than their A/AAAA record to the
-  proxy. Validation happens over port 80.
+  proxy. Validation happens over port 80. The `DomainWithWww` scope puts `www.<hostname>` in
+  the same certificate and serves the website on both names; `www.<hostname>` then needs its own
+  A/AAAA record to the proxy as well, since every name in the order is validated.
 - **Websites with `dns-01`** (wildcard and wildcard-with-apex scopes) need one CNAME:
   `_acme-challenge.<hostname>` → `<prefix>.<AcmeChallengeZone>`, where the prefix is the hostname
   with dots replaced by dashes. For `*.shop.example.com` that is

@@ -150,6 +150,7 @@ namespace LakerProxy.ProxyApp.BackgroundServices
           case CertificateScope.None:
           case CertificateScope.SingleDomain:
           case CertificateScope.WildcardWithApex:
+          case CertificateScope.DomainWithWww:
             hosts.Add(website.Hostname);
             break;
         }
@@ -158,6 +159,9 @@ namespace LakerProxy.ProxyApp.BackgroundServices
           case CertificateScope.Wildcard:
           case CertificateScope.WildcardWithApex:
             hosts.Add($"*.{website.Hostname}");
+            break;
+          case CertificateScope.DomainWithWww:
+            hosts.Add($"www.{website.Hostname}");
             break;
         }
 
