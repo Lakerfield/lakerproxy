@@ -48,7 +48,7 @@ namespace LakerProxy.ProxyApp.Yarp
           if (website == null)
             return false;
 
-          if (website.Website.Scope == CertificateScope.DomainWithWww)
+          if (website.Website.Scope != CertificateScope.DomainWithWww)
             return false;
 
           return !string.Equals(context.Request.Host.Host, website.Hostname, StringComparison.OrdinalIgnoreCase);
