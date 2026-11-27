@@ -56,10 +56,9 @@ done
 
 [[ "$(id -u)" -eq 0 ]] || die "run as root (sudo)"
 
-# the questions need a terminal, also for `curl ... | sudo bash`
-if [[ ! -t 0 ]]; then
-  { exec < /dev/tty; } 2>/dev/null || die "this script needs a terminal"
-fi
+# the questions read from /dev/tty, so `curl ... | sudo bash` works too (stdin is
+# the script itself there, so it must never be redirected)
+{ : < /dev/tty; } 2>/dev/null || die "this script needs a terminal"
 
 # ---------------------------------------------------------------------------
 # helpers
@@ -77,7 +76,7 @@ ask() {
   local -n __ref="$1"
   local __question="$2" __default="$3" __validator="${4:-}" __answer
   while true; do
-    IFS= read -r -e -i "$__default" -p "$__question: " __answer || die "no input"
+    IFS= read -r -e -i "$__default" -p "$__question: " __answer < /dev/tty || die "no input"
     __answer="$(trim "$__answer")"
     if [[ -z "$__validator" ]] || "$__validator" "$__answer"; then
       __ref="$__answer"
@@ -165,7 +164,8 @@ apt_install() {
   done
   if [[ ${#missing[@]} -gt 0 ]]; then
     log "installing: ${missing[*]}"
-    DEBIAN_FRONTEND=noninteractive apt-get install -y -q "${missing[@]}"
+    # </dev/null: with `curl | bash` stdin is the script, no command may read from it
+    DEBIAN_FRONTEND=noninteractive apt-get install -y -q "${missing[@]}" < /dev/null
   fi
 }
 
@@ -209,7 +209,7 @@ setup_system() {
   fi
 
   log "updating package lists"
-  apt-get update -q
+  apt-get update -q < /dev/null
   apt_install curl ca-certificates nano ufw tar
 
   if ask_yesno "Install unattended security updates (unattended-upgrades)?" y; then
@@ -228,8 +228,8 @@ EOF
       release="$(. /etc/os-release && echo "$VERSION_ID")"
       deb="$(mktemp)"
       if curl -fsSL -o "$deb" "https://packages.microsoft.com/config/ubuntu/$release/packages-microsoft-prod.deb"; then
-        dpkg -i "$deb" >/dev/null
-        apt-get update -q
+        dpkg -i "$deb" >/dev/null < /dev/null
+        apt-get update -q < /dev/null
         apt_install libmsquic
       else
         warn "no Microsoft package repository for Ubuntu $release, libmsquic skipped (HTTP/1.1 and HTTP/2 still work)"
@@ -487,7 +487,7 @@ setup_firewall() {
   fi
 
   if ask_yesno "Reset the existing ufw rules first (recommended, this script defines the complete rule set)?" y; then
-    ufw --force reset >/dev/null
+    ufw --force reset >/dev/null < /dev/null
   fi
 
   # IPV6=yes makes every rule without an address apply to IPv4 and IPv6
@@ -504,7 +504,7 @@ setup_firewall() {
   ufw allow 443/tcp comment 'https' >/dev/null
   ufw allow 443/udp comment 'https http/3' >/dev/null
   ufw allow 53/udp comment 'acme dns' >/dev/null
-  ufw --force enable >/dev/null
+  ufw --force enable >/dev/null < /dev/null
   ufw status verbose
 }
 
