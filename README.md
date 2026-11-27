@@ -93,16 +93,29 @@ systemd.
 curl -fsSL https://raw.githubusercontent.com/lakerfield/lakerproxy/master/deploy/install.sh | sudo bash
 ```
 
-The first run creates the `lakerproxy` system user, downloads the latest release, verifies its
-SHA-256, installs the systemd unit and writes `/opt/lakerproxy/config/app-configuration.ini`.
-Edit that file (MongoDB connection string, `initial-admin-token`, `acme-mail`) and start the
-service:
+The first run creates the `lakerproxy` system user, asks for the settings the server needs
+(MongoDB connection, hostname of the management API, admin token, Let's Encrypt account and
+certificate subject), writes them to `/opt/lakerproxy/config/app-configuration.ini`, downloads
+the latest release, verifies its SHA-256, installs the systemd unit and starts the service. The
+admin token is generated for you unless you type your own; it is printed at the end together
+with the API url for the manager. The questions read from the terminal, so the `curl | sudo bash`
+form works.
+
+The hostname, token and Let's Encrypt values are written to MongoDB at the very first start of
+the server, which is why the script only enables and starts the service once they are complete.
+After that first start they are managed in the manager and the ini values are ignored. To
+correct the file before that first start, run the questions again or edit it by hand:
 
 ```bash
+sudo lakerproxy-update --configure
 sudo nano /opt/lakerproxy/config/app-configuration.ini
+sudo systemctl enable --now lakerproxy
 sudo systemctl start lakerproxy
 sudo systemctl status lakerproxy
 ```
+
+Without a terminal (cloud-init, automation) pass `--non-interactive`: the script then writes a
+template configuration, installs the release and exits without starting the service.
 
 Layout on the server:
 
@@ -121,6 +134,7 @@ Layout on the server:
 sudo lakerproxy-update                   # update to the latest release
 sudo lakerproxy-update --check           # exit 0 = up to date, 10 = update available
 sudo lakerproxy-update --version 2.0.1   # install a specific release, also for rollback
+sudo lakerproxy-update --configure       # ask the configuration questions again
 ```
 
 An update downloads the release next to the current one, switches the `current` symlink,
@@ -145,11 +159,12 @@ assume the server's machine name is `proxy1` and your zone is `example.com`.
 | `_acme-challenge.<website>` | CNAME | `<website-prefix>.acme.proxy1.example.com` | per website, only for `dns-01` (wildcards) |
 
 - **Server hostname.** On first start the server registers itself under its machine name
-  (`Environment.MachineName`) and uses that as `Hostname`; set the full name, for example
-  `proxy1.example.com`, in the manager's Servers tab. The manager's *Check DNS* compares every
-  website's A/AAAA records with the resolved addresses of its servers, so this record must exist.
-- **ACME challenge zone.** The server defaults its `AcmeChallengeZone` to `acme.<name>`. Create an
-  NS record for that zone pointing at the server hostname. Because the server answers the
+  (`Environment.MachineName`) with `initial-hostname` from the configuration as its `Hostname`,
+  for example `proxy1.example.com`; both can be changed later in the manager's Servers tab. The
+  manager's *Check DNS* compares every website's A/AAAA records with the resolved addresses of
+  its servers, so this record must exist.
+- **ACME challenge zone.** The server defaults its `AcmeChallengeZone` to `acme.<hostname>`. Create
+  an NS record for that zone pointing at the server hostname. Because the server answers the
   delegated zone itself, UDP and TCP port 53 must be reachable from the internet and no other DNS
   server may run on the machine. The NS target must resolve via an A record, not a CNAME.
 - **Websites with `http-01`** (single hostnames) need nothing more than their A/AAAA record to the
@@ -211,13 +226,19 @@ connectionstring=mongodb://localhost
 database=lakerproxy
 
 [data]
-# used once to create the first admin API user; log in with this token from the manager
-initial-admin-token=
+# used once, at the very first start with an empty database
+# hostname of the management API, created as website of kind ProxyApi
 initial-hostname=localhost
 initial-hostname-with-certificate=false
+# creates the first admin API user; log in with this token from the manager
+initial-admin-token=
 
+# Let's Encrypt account (staging and live) and certificate subject, all required
 acme-mail=
 acme-organization=
+acme-organization-unit=Development
+acme-locality=
+acme-state=
 acme-country=NL
 
 [security]
@@ -228,11 +249,12 @@ blocklist-allow-list=127.0.0.0/8 ::1 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16
 
 ## Getting started
 
-1. Start MongoDB and create `app-configuration-override.ini` (development) or edit
-   `/opt/lakerproxy/config/app-configuration.ini` (installed server) with your connection string
-   and a long random `initial-admin-token`.
+1. Start MongoDB and create `app-configuration-override.ini` (development) with your connection
+   string, a long random `initial-admin-token` and the `acme-*` values. On an installed server
+   `install.sh` asks for these on the first run.
 2. Run the proxy server. On first start it registers itself as a `Server` document keyed by the
-   machine name and creates the initial admin API user from the token.
+   machine name with `initial-hostname` as its hostname, creates a `ProxyApi` website on that
+   hostname and the initial admin API user from the token.
 3. Enable the `Proxy` and `LetsEncrypt` services on that server (via the manager or the API) and
    add a website of kind `ProxyApi` on the hostname where you want to reach the management API.
 4. Start the manager, add the proxy server with its API URL and the admin token, and begin adding

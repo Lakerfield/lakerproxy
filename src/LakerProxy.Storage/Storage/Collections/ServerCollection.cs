@@ -15,11 +15,13 @@ namespace LakerProxy.Storage.Collections
 
   public class ServerCollection : ABaseObservableCollection<Entity>, IServerCollection
   {
+    private LakerProxySettings _settings;
+
     protected override async Task Initialize(IMongoDatabase database, AppServices services)
     {
       await base.Initialize(database, services);
 
-      var settings = services.Settings().LakerProxy();
+      _settings = services.Settings().LakerProxy();
 
       await Collection.Indexes.CreateOneAsync(new CreateIndexModel<Entity>(
         IndexKeys
@@ -42,12 +44,15 @@ namespace LakerProxy.Storage.Collections
       var result = await Collection.Find(Filter.Eq(e => e.Name, name)).FirstOrDefaultAsync();
       if (result == null)
       {
+        // the public hostname of this server is the configured initial-hostname (the
+        // management api is served from it); the machine name is only the key
+        var hostname = (string.IsNullOrWhiteSpace(_settings?.InitialHostname) ? name : _settings.InitialHostname).ToLower().Trim();
         result = new Entity()
         {
           Name = name,
-          Hostname = name,
+          Hostname = hostname,
           AcmeAccount = (await Services.AcmeAccount().FindDefault())?.Id ?? ShortGuid.Empty,
-          AcmeChallengeZone = $"acme.{name}",
+          AcmeChallengeZone = $"acme.{hostname}",
           Comments = "auto created on launch",
           Services = services,
           CreatedAt = DateTime.Now,
