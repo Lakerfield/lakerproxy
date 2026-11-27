@@ -84,6 +84,36 @@ Shared package versions are pinned in `Directory.Build.targets`.
 
 ## Install on Ubuntu
 
+### Prepare the host
+
+`deploy/setup-ubuntu.sh` prepares a fresh Ubuntu server (22.04 or newer) for the proxy. Every
+question shows the current or suggested value; edit it inline or press enter.
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/lakerfield/lakerproxy/master/deploy/setup-ubuntu.sh | sudo bash
+```
+
+- **system**: hostname (the proxy registers itself under it), timezone, base packages,
+  unattended security updates, `libmsquic` from the Microsoft repository for HTTP/3, and the
+  systemd-resolved stub listener on `127.0.0.53:53` is switched off so the built-in ACME DNS
+  server can bind port 53.
+- **firewall** (ufw): default deny incoming; `80/tcp`, `443/tcp`, `443/udp` (HTTP/3) and
+  `53/udp` (ACME DNS, the server only listens on UDP) for IPv4 and IPv6; `22/tcp` only from the
+  management addresses you enter. Without a management address no ssh rule is added and the
+  script asks for confirmation.
+- **network** (`/etc/netplan/00-installer-config.yaml`): static IPv4, static IPv6 on the WAN when
+  you enter an IPv6 address and gateway (leave the address empty to disable IPv6). The first
+  interface becomes `eth0` (WAN, `/27` when you type a bare address, gateway defaults to the
+  first address of the range, Google DNS). The second becomes `eth1` (LAN, `/24`) with routes to
+  the kubernetes clusters; each new route is prefilled with the previous one, so a second range
+  to the same next hop is one edit away. Existing routes on the LAN interface are offered for
+  reuse, other netplan files are moved aside and cloud-init's network config is disabled.
+  Interfaces are matched by MAC address and renamed, which takes effect after a reboot.
+
+Run one section with `--system`, `--firewall` or `--network`. Then install the proxy:
+
+### Install the proxy
+
 Server builds are published as [GitHub Releases](https://github.com/lakerfield/lakerproxy/releases)
 (`lakerproxy-server-<version>-linux-x64.tar.gz`, self-contained, no .NET runtime needed on the
 server). `deploy/install.sh` installs and updates from those releases on Ubuntu or Debian with
@@ -165,8 +195,8 @@ assume the server's machine name is `proxy1` and your zone is `example.com`.
   its servers, so this record must exist.
 - **ACME challenge zone.** The server defaults its `AcmeChallengeZone` to `acme.<hostname>`. Create
   an NS record for that zone pointing at the server hostname. Because the server answers the
-  delegated zone itself, UDP and TCP port 53 must be reachable from the internet and no other DNS
-  server may run on the machine. The NS target must resolve via an A record, not a CNAME.
+  delegated zone itself, UDP port 53 must be reachable from the internet and no other DNS server
+  may run on the machine. The NS target must resolve via an A record, not a CNAME.
 - **Websites with `http-01`** (single hostnames) need nothing more than their A/AAAA record to the
   proxy. Validation happens over port 80. The `DomainWithWww` scope puts `www.<hostname>` in
   the same certificate; requests on `www.<hostname>` get a permanent redirect to the same URL on
@@ -191,8 +221,8 @@ assume the server's machine name is `proxy1` and your zone is `example.com`.
 Notes:
 
 - The service runs as an unprivileged user with `CAP_NET_BIND_SERVICE` for ports 80, 443 and 53.
-- HTTP/3 needs `libmsquic` from the Microsoft package repository; without it the server serves
-  HTTP/1.1 and HTTP/2 only.
+- HTTP/3 needs `libmsquic` from the Microsoft package repository and UDP port 443 open; without
+  it the server serves HTTP/1.1 and HTTP/2 only. `setup-ubuntu.sh` takes care of both.
 - The script honours `LAKERPROXY_ROOT`, `LAKERPROXY_SERVICE`, `LAKERPROXY_USER` and
   `LAKERPROXY_KEEP` environment variables for non-default locations.
 
