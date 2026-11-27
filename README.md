@@ -87,10 +87,12 @@ Shared package versions are pinned in `Directory.Build.targets`.
 ### Prepare the host
 
 `deploy/setup-ubuntu.sh` prepares a fresh Ubuntu server (22.04 or newer) for the proxy. Every
-question shows the current or suggested value; edit it inline or press enter.
+question shows the current or suggested value; edit it inline or press enter. Download it and
+run it from the file, so you can inspect it first and re-run a single section later:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/lakerfield/lakerproxy/master/deploy/setup-ubuntu.sh | sudo bash
+curl -fsSLO https://raw.githubusercontent.com/lakerfield/lakerproxy/master/deploy/setup-ubuntu.sh
+sudo bash setup-ubuntu.sh
 ```
 
 - **system**: hostname (the proxy registers itself under it), timezone, base packages,

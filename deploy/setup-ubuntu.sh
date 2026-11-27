@@ -85,11 +85,18 @@ ask() {
   done
 }
 
-# ask_yesno "question" y|n; returns 0 for yes
+# ask_yesno "question" y|n; enter takes the default (shown in capitals), returns 0 for yes
 ask_yesno() {
-  local yn
-  ask yn "$1 [y/n]" "$2" v_yesno
-  [[ "$yn" =~ ^[Yy] ]]
+  local hint yn
+  [[ "$2" == y ]] && hint="Y/n" || hint="y/N"
+  while true; do
+    IFS= read -r -p "$1 [$hint]: " yn < /dev/tty || die "no input"
+    yn="$(trim "$yn")"
+    yn="${yn:-$2}"
+    if v_yesno "$yn"; then
+      [[ "$yn" =~ ^[Yy] ]] && return 0 || return 1
+    fi
+  done
 }
 
 v_yesno()     { [[ "$1" =~ ^([Yy]([Ee][Ss])?|[Nn][Oo]?)$ ]] || { echo "  answer y or n"; return 1; }; }
@@ -296,8 +303,13 @@ setup_network() {
   echo
   ask wan_cidr "WAN address/prefix (a bare address gets /$WAN_PREFIX_DEFAULT)" "$current" v_cidr_or_bare
   [[ "$wan_cidr" == */* ]] || wan_cidr="$wan_cidr/$WAN_PREFIX_DEFAULT"
+  # suggestion: the current gateway when it lies inside the entered range (nothing changed),
+  # otherwise the first address of that range so usually only the last number needs editing
   current="$(ip -4 route show default dev "$wan_if" 2>/dev/null | awk '{print $3; exit}')"
-  ask wan_gw "WAN gateway" "${current:-$(cidr_first_host "$wan_cidr")}" v_ipv4
+  if [[ -z "$current" ]] || ! cidr_contains "$wan_cidr" "$current"; then
+    current="$(cidr_first_host "$wan_cidr")"
+  fi
+  ask wan_gw "WAN gateway" "$current" v_ipv4
   cidr_contains "$wan_cidr" "$wan_gw" || warn "gateway $wan_gw is outside $(cidr_network_text "$wan_cidr")"
   [[ "$wan_gw" != "${wan_cidr%/*}" ]] || die "gateway equals the WAN address"
 
@@ -305,12 +317,12 @@ setup_network() {
   current="$(ip -o -6 addr show dev "$wan_if" scope global 2>/dev/null | awk '{print $4; exit}')"
   ask wan6_cidr "WAN IPv6 address/prefix (empty = IPv6 disabled)" "$current" v_ipv6_cidr_or_empty
   if [[ -n "$wan6_cidr" ]]; then
-    current="$(ip -6 route show default dev "$wan_if" 2>/dev/null | awk '{print $3; exit}')"
-    # suggestion: the address with its last group replaced by 1 (2001:db8:1:2::34 -> 2001:db8:1:2::1)
+    # suggestion: the address with its last group replaced by 1 (2001:db8:1:2::34 -> 2001:db8:1:2::1);
+    # the current default route is usually a link-local router address, not useful as static gateway
     local wan6_addr="${wan6_cidr%/*}" suggestion
     suggestion="${wan6_addr%:*}:1"
     [[ "$suggestion" != "$wan6_addr" ]] || suggestion=""
-    ask wan6_gw "WAN IPv6 gateway" "${current:-$suggestion}" v_ipv6
+    ask wan6_gw "WAN IPv6 gateway" "$suggestion" v_ipv6
     [[ "$wan6_gw" != "${wan6_cidr%/*}" ]] || die "IPv6 gateway equals the WAN IPv6 address"
     dns_default="$DNS_DEFAULT $DNS6_DEFAULT"
   fi
